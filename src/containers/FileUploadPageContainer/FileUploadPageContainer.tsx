@@ -79,9 +79,10 @@ const FileUploadPageContainer = () => {
         <div className="w-full mt-5">
           {files.length > 0 && (
             <div className="mt-5 w-full">
-              <div className="w-full flex justify-between">
+              <div className="w-full flex justify-between items-center">
                 <h4 className="text-left font-semibold">선택된 파일:</h4>
                 <button
+                  className="px-2 py-1 outline outline-stone-600 rounded-lg cursor-pointer hover:outline-blue-600 hover:text-blue-600"
                   onClick={() => {
                     setFiles([]);
                     if (fileInputRef.current) {
@@ -92,7 +93,7 @@ const FileUploadPageContainer = () => {
                   전체 삭제
                 </button>
               </div>
-              <ul className="list-none p-0 text-left">
+              <ul className="mt-4 max-h-[500px] list-none p-0 text-left overflow-auto">
                 {files.map((file, index) => (
                   <li key={index} className="bg-gray-200 p-2 rounded-md mb-2 flex">
                     <div className="flex-1">{file.name}</div>
