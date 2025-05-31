@@ -51,9 +51,9 @@ const SamplePage = () => {
       setUploadComplete(true);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.error("파일 업로드 중 오류 발생:", err.response?.data?.returnMsg || "");
+        alert(`파일 업로드 중 오류 발생: ${err.response?.data?.returnMsg || "알 수 없는 오류"}`);
       } else {
-        console.error("파일 업로드 중 알 수 없는 오류 발생:", err);
+        alert("파일 업로드 중 알 수 없는 오류 발생:");
       }
     }
   };
