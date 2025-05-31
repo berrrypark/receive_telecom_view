@@ -1,7 +1,7 @@
-import SamplePage from "./SamplePage";
+import FileUploadPageContainer from "./containers/FileUploadPageContainer/FileUploadPageContainer";
 
-function App() {
-  return <SamplePage />;
-}
+const App = () => {
+  return <FileUploadPageContainer />;
+};
 
 export default App;
