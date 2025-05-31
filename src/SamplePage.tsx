@@ -41,33 +41,20 @@ const SamplePage = () => {
     });
 
     try {
-      const res = await axios.post("/api/upload/multiple", formData, {
+      await axios.post("/api/upload/multiple", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      if (res.status !== 200) {
-        const errorData = res.data;
-        if (errorData && errorData.returnCode === "9999") {
-          console.log("업로드 실패:", res.status, res.data);
-          alert(`업로드 실패 : ${errorData.returnMsg}`);
-        }
-      }
-
-      console.log("업로드 응답:", res.data);
-
-      // if (res.status == 200) {
-      //   setIsModalOpen(true);
-      // }
-
-      // setIsModalOpen(true);
-
       console.log("업로드할 파일:", files);
       setUploadComplete(true);
     } catch (err) {
-      console.error(err);
-      alert("업로드 실패!");
+      if (axios.isAxiosError(err)) {
+        console.error("파일 업로드 중 오류 발생:", err.response?.data?.returnMsg || "");
+      } else {
+        console.error("파일 업로드 중 알 수 없는 오류 발생:", err);
+      }
     }
   };
 
