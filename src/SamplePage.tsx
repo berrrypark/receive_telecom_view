@@ -47,6 +47,14 @@ const SamplePage = () => {
         },
       });
 
+      if (res.status !== 200) {
+        const errorData = res.data;
+        if (errorData && errorData.returnCode === "9999") {
+          console.log("업로드 실패:", res.status, res.data);
+          alert(`업로드 실패 : ${errorData.returnMsg}`);
+        }
+      }
+
       console.log("업로드 응답:", res.data);
 
       // if (res.status == 200) {
