@@ -1,37 +1,23 @@
 import { useRef, useState } from "react";
 import axios from "axios";
-import { MdOutlineFileUpload, MdDelete } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
 
-const SamplePage = () => {
+import type { CollectionData } from "../../common/types/collection";
+import type { ReceiveDetail } from "../../common/types/receive";
+import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
+
+const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [offLineCollectionData, setOffLineCollectionData] = useState<any[]>([]);
-  const [onLineCollectionData, setOnLineCollectionData] = useState<any[]>([]);
-  const [detailData, setDetailData] = useState<any[]>([]);
+  const [offLineCollectionData, setOffLineCollectionData] = useState<CollectionData[]>([]);
+  const [onLineCollectionData, setOnLineCollectionData] = useState<CollectionData[]>([]);
+  const [detailData, setDetailData] = useState<ReceiveDetail[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    if (!selectedFiles) return;
-
-    const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
-
-    Array.from(selectedFiles).forEach((file) => {
-      if (file.name.endsWith(".layout")) {
-        validFiles.push(file);
-      } else {
-        invalidFiles.push(file.name);
-      }
-    });
-
-    if (invalidFiles.length > 0) {
-      console.warn(`다음 파일들은 업로드할 수 없습니다: ${invalidFiles.join(", ")}`);
-    }
-
-    setFiles((prevFiles) => [...prevFiles, ...validFiles]);
+  const handleFileChange = (selectedFiles: File[]) => {
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
   };
 
   const handleUpload = async () => {
@@ -91,11 +77,7 @@ const SamplePage = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/debt/lg/collection-detail");
-      if (
-        !response.data ||
-        !Array.isArray(response.data.offLine) ||
-        !Array.isArray(response.data.onLine)
-      ) {
+      if (!response.data || !Array.isArray(response.data.offLine) || !Array.isArray(response.data.onLine)) {
         console.error("API 응답 포맷 오류:", response.data);
         alert("데이터 포맷 오류");
         return;
@@ -117,40 +99,17 @@ const SamplePage = () => {
     }
   };
 
-  const openFileDialog = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
   return (
     <div className="h-full w-full flex flex-col items-center">
       {/* 파일 업로드 */}
       <div className="w-[360px] flex flex-col justify-center items-center rounded-lg border border-gray-500 p-4 mb-4">
         <h2 className="mb-8 text-xl font-bold">📁 LG 수납 파일 업로드</h2>
         <div className="flex justify-between w-full">
-          <button
-            onClick={openFileDialog}
-            className="text-cyan-800 hover:text-cyan-950 flex items-center"
-            disabled={files.length > 0}
-          >
-            <MdOutlineFileUpload className="mr-2" />
-            파일 선택
-          </button>
-          <input
-            type="file"
-            accept=".layout"
-            multiple
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            className="hidden"
-          />
+          <FileUploadButton files={files} onChange={handleFileChange} />
           <button
             onClick={handleUpload}
             disabled={files.length === 0 || loading}
-            className={`text-blue-800 hover:text-blue-950 ${
-              files.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
-            }`}
+            className={`text-blue-800 hover:text-blue-950 ${files.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
           >
             업로드
           </button>
@@ -315,7 +274,7 @@ const SamplePage = () => {
                           "after36MonthSuAmt",
                         ].map((field, idx) => {
                           const colSum = offLineCollectionData.reduce(
-                            (acc, item) => acc + (item[field] ?? 0),
+                            (acc, item) => acc + Number(item[field as keyof CollectionData] ?? 0),
                             0
                           );
                           return (
@@ -325,22 +284,24 @@ const SamplePage = () => {
                           );
                         })}
                         <td className="px-2 py-1 border text-right">
-                          {offLineCollectionData.reduce((acc, item) => {
-                            return (
-                              acc +
-                              [
-                                item.thisMonthAmt,
-                                item.after1MonthAmt,
-                                item.after1MonthSuAmt,
-                                item.after4MonthAmt,
-                                item.after4MonthSuAmt,
-                                item.after12MonthAmt,
-                                item.after12MonthSuAmt,
-                                item.after36MonthAmt,
-                                item.after36MonthSuAmt,
-                              ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
-                            );
-                          }, 0).toLocaleString()}
+                          {offLineCollectionData
+                            .reduce((acc, item) => {
+                              return (
+                                acc +
+                                [
+                                  item.thisMonthAmt,
+                                  item.after1MonthAmt,
+                                  item.after1MonthSuAmt,
+                                  item.after4MonthAmt,
+                                  item.after4MonthSuAmt,
+                                  item.after12MonthAmt,
+                                  item.after12MonthSuAmt,
+                                  item.after36MonthAmt,
+                                  item.after36MonthSuAmt,
+                                ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
+                              );
+                            }, 0)
+                            .toLocaleString()}
                         </td>
                       </tr>
                     </tbody>
@@ -413,7 +374,7 @@ const SamplePage = () => {
                           "after36MonthSuAmt",
                         ].map((field, idx) => {
                           const colSum = onLineCollectionData.reduce(
-                            (acc, item) => acc + (item[field] ?? 0),
+                            (acc, item) => acc + Number(item[field as keyof CollectionData] ?? 0),
                             0
                           );
                           return (
@@ -423,22 +384,24 @@ const SamplePage = () => {
                           );
                         })}
                         <td className="px-2 py-1 border text-right">
-                          {onLineCollectionData.reduce((acc, item) => {
-                            return (
-                              acc +
-                              [
-                                item.thisMonthAmt,
-                                item.after1MonthAmt,
-                                item.after1MonthSuAmt,
-                                item.after4MonthAmt,
-                                item.after4MonthSuAmt,
-                                item.after12MonthAmt,
-                                item.after12MonthSuAmt,
-                                item.after36MonthAmt,
-                                item.after36MonthSuAmt,
-                              ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
-                            );
-                          }, 0).toLocaleString()}
+                          {onLineCollectionData
+                            .reduce((acc, item) => {
+                              return (
+                                acc +
+                                [
+                                  item.thisMonthAmt,
+                                  item.after1MonthAmt,
+                                  item.after1MonthSuAmt,
+                                  item.after4MonthAmt,
+                                  item.after4MonthSuAmt,
+                                  item.after12MonthAmt,
+                                  item.after12MonthSuAmt,
+                                  item.after36MonthAmt,
+                                  item.after36MonthSuAmt,
+                                ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
+                              );
+                            }, 0)
+                            .toLocaleString()}
                         </td>
                       </tr>
                     </tbody>
@@ -453,4 +416,4 @@ const SamplePage = () => {
   );
 };
 
-export default SamplePage;
+export default FileUploadPageContainer;
