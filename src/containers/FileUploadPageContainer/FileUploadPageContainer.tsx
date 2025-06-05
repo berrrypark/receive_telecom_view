@@ -250,6 +250,7 @@ const SamplePage = () => {
           {(offLineCollectionData.length > 0 || onLineCollectionData.length > 0) && (
             <div className="flex-1 flex flex-col gap-4">
               {/* 위쪽 (B) */}
+              {/* (B) 오프라인 채권추심 상세내역 */}
               {offLineCollectionData.length > 0 && (
                 <div className="border p-2 overflow-x-auto">
                   <h3 className="text-lg font-semibold mb-2">📊 채권추심 상세내역 (OffLine)</h3>
@@ -259,35 +260,95 @@ const SamplePage = () => {
                         <th className="px-2 py-1 border">PG코드</th>
                         <th className="px-2 py-1 border">당월청구/수납</th>
                         <th className="px-2 py-1 border">1개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(1개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(1개월)</th>
                         <th className="px-2 py-1 border">4개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(4개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(4개월)</th>
                         <th className="px-2 py-1 border">12개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(12개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(12개월)</th>
                         <th className="px-2 py-1 border">36개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(36개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(36개월)</th>
+                        <th className="px-2 py-1 border font-semibold">행 합계</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {offLineCollectionData.map((item, index) => (
-                        <tr key={`collection-${index}`}>
-                          <td className="px-2 py-1 border">{item.co}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.thisMonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after1MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after1MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after4MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after4MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after12MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after12MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after36MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after36MonthSuAmt ?? 0).toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {offLineCollectionData.map((item, index) => {
+                        const rowSum = [
+                          item.thisMonthAmt,
+                          item.after1MonthAmt,
+                          item.after1MonthSuAmt,
+                          item.after4MonthAmt,
+                          item.after4MonthSuAmt,
+                          item.after12MonthAmt,
+                          item.after12MonthSuAmt,
+                          item.after36MonthAmt,
+                          item.after36MonthSuAmt,
+                        ].reduce((acc, val) => acc + (val ?? 0), 0);
+
+                        return (
+                          <tr key={`collection-${index}`}>
+                            <td className="px-2 py-1 border">{item.co}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.thisMonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after1MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after1MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after4MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after4MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after12MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after12MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after36MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after36MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right font-semibold">{rowSum.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                      {/* 합계 행 */}
+                      <tr className="bg-gray-100 font-semibold">
+                        <td className="px-2 py-1 border">합계</td>
+                        {[
+                          "thisMonthAmt",
+                          "after1MonthAmt",
+                          "after1MonthSuAmt",
+                          "after4MonthAmt",
+                          "after4MonthSuAmt",
+                          "after12MonthAmt",
+                          "after12MonthSuAmt",
+                          "after36MonthAmt",
+                          "after36MonthSuAmt",
+                        ].map((field, idx) => {
+                          const colSum = offLineCollectionData.reduce(
+                            (acc, item) => acc + (item[field] ?? 0),
+                            0
+                          );
+                          return (
+                            <td key={`offline-sum-${idx}`} className="px-2 py-1 border text-right">
+                              {colSum.toLocaleString()}
+                            </td>
+                          );
+                        })}
+                        <td className="px-2 py-1 border text-right">
+                          {offLineCollectionData.reduce((acc, item) => {
+                            return (
+                              acc +
+                              [
+                                item.thisMonthAmt,
+                                item.after1MonthAmt,
+                                item.after1MonthSuAmt,
+                                item.after4MonthAmt,
+                                item.after4MonthSuAmt,
+                                item.after12MonthAmt,
+                                item.after12MonthSuAmt,
+                                item.after36MonthAmt,
+                                item.after36MonthSuAmt,
+                              ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
+                            );
+                          }, 0).toLocaleString()}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
               )}
               {/* 아래쪽 (C) */}
+              {/* (C) 온라인 채권추심 상세내역 */}
               {onLineCollectionData.length > 0 && (
                 <div className="border p-2 overflow-x-auto">
                   <h3 className="text-lg font-semibold mb-2">📊 채권추심 상세내역 (OnLine)</h3>
@@ -297,33 +358,91 @@ const SamplePage = () => {
                         <th className="px-2 py-1 border">PG코드</th>
                         <th className="px-2 py-1 border">당월청구/수납</th>
                         <th className="px-2 py-1 border">1개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(1개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(1개월)</th>
                         <th className="px-2 py-1 border">4개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(4개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(4개월)</th>
                         <th className="px-2 py-1 border">12개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(12개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(12개월)</th>
                         <th className="px-2 py-1 border">36개월 경과</th>
-                        <th className="px-2 py-1 border">연체가산금(36개월 경과)</th>
+                        <th className="px-2 py-1 border">연체가산금(36개월)</th>
+                        <th className="px-2 py-1 border font-semibold">행 합계</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {onLineCollectionData.map((item, index) => (
-                        <tr key={`collection-${index}`}>
-                          <td className="px-2 py-1 border">{item.co}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.thisMonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after1MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after1MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after4MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after4MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after12MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after12MonthSuAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after36MonthAmt ?? 0).toLocaleString()}</td>
-                          <td className="px-2 py-1 border text-right">{Number(item.after36MonthSuAmt ?? 0).toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {onLineCollectionData.map((item, index) => {
+                        const rowSum = [
+                          item.thisMonthAmt,
+                          item.after1MonthAmt,
+                          item.after1MonthSuAmt,
+                          item.after4MonthAmt,
+                          item.after4MonthSuAmt,
+                          item.after12MonthAmt,
+                          item.after12MonthSuAmt,
+                          item.after36MonthAmt,
+                          item.after36MonthSuAmt,
+                        ].reduce((acc, val) => acc + (val ?? 0), 0);
+
+                        return (
+                          <tr key={`collection-online-${index}`}>
+                            <td className="px-2 py-1 border">{item.co}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.thisMonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after1MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after1MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after4MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after4MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after12MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after12MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after36MonthAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.after36MonthSuAmt ?? 0).toLocaleString()}</td>
+                            <td className="px-2 py-1 border text-right font-semibold">{rowSum.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                      {/* 합계 행 */}
+                      <tr className="bg-gray-100 font-semibold">
+                        <td className="px-2 py-1 border">합계</td>
+                        {[
+                          "thisMonthAmt",
+                          "after1MonthAmt",
+                          "after1MonthSuAmt",
+                          "after4MonthAmt",
+                          "after4MonthSuAmt",
+                          "after12MonthAmt",
+                          "after12MonthSuAmt",
+                          "after36MonthAmt",
+                          "after36MonthSuAmt",
+                        ].map((field, idx) => {
+                          const colSum = onLineCollectionData.reduce(
+                            (acc, item) => acc + (item[field] ?? 0),
+                            0
+                          );
+                          return (
+                            <td key={`online-sum-${idx}`} className="px-2 py-1 border text-right">
+                              {colSum.toLocaleString()}
+                            </td>
+                          );
+                        })}
+                        <td className="px-2 py-1 border text-right">
+                          {onLineCollectionData.reduce((acc, item) => {
+                            return (
+                              acc +
+                              [
+                                item.thisMonthAmt,
+                                item.after1MonthAmt,
+                                item.after1MonthSuAmt,
+                                item.after4MonthAmt,
+                                item.after4MonthSuAmt,
+                                item.after12MonthAmt,
+                                item.after12MonthSuAmt,
+                                item.after36MonthAmt,
+                                item.after36MonthSuAmt,
+                              ].reduce((rowAcc, val) => rowAcc + (val ?? 0), 0)
+                            );
+                          }, 0).toLocaleString()}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
-
                 </div>
               )}
             </div>
