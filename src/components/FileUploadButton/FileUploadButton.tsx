@@ -1,20 +1,19 @@
-import { useRef } from "react";
 import { MdOutlineFileUpload } from "react-icons/md";
 
 interface FileUploadButtonProps {
   files: File[];
+  inputRef: React.RefObject<HTMLInputElement | null>;
   onChange: (files: File[]) => void;
 }
 
-const FileUploadButton = ({ files, onChange }: FileUploadButtonProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+const FileUploadButton = ({ inputRef, files, onChange }: FileUploadButtonProps) => {
   const handleClickInput = () => {
-    fileInputRef?.current?.click();
+    inputRef?.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
+
     if (!selectedFiles) return;
 
     const validFiles: File[] = [];
@@ -41,7 +40,7 @@ const FileUploadButton = ({ files, onChange }: FileUploadButtonProps) => {
         <MdOutlineFileUpload className="mr-2" />
         파일 선택
       </button>
-      <input type="file" accept=".layout" multiple onChange={handleFileChange} ref={fileInputRef} className="hidden" />
+      <input type="file" accept=".layout" multiple onChange={handleFileChange} ref={inputRef} className="hidden" />
     </>
   );
 };

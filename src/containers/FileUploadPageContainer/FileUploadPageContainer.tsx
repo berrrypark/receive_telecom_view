@@ -33,7 +33,9 @@ const FileUploadPageContainer = () => {
       await axios.post("/api/upload/multiple", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       alert("파일 업로드 완료!");
+      handleDeleteAllFiles();
     } catch (err) {
       console.error("파일 업로드 오류:", err);
       alert("파일 업로드 오류 발생!");
@@ -99,13 +101,20 @@ const FileUploadPageContainer = () => {
     }
   };
 
+  const handleDeleteAllFiles = () => {
+    setFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="h-full w-full flex flex-col items-center">
       {/* 파일 업로드 */}
       <div className="w-[360px] flex flex-col justify-center items-center rounded-lg border border-gray-500 p-4 mb-4">
         <h2 className="mb-8 text-xl font-bold">📁 LG 수납 파일 업로드</h2>
         <div className="flex justify-between w-full">
-          <FileUploadButton files={files} onChange={handleFileChange} />
+          <FileUploadButton files={files} inputRef={fileInputRef} onChange={handleFileChange} />
           <button
             onClick={handleUpload}
             disabled={files.length === 0 || loading}
@@ -118,16 +127,7 @@ const FileUploadPageContainer = () => {
           <div className="w-full mt-5">
             <div className="w-full flex justify-between">
               <h4 className="text-left font-semibold">선택된 파일:</h4>
-              <button
-                onClick={() => {
-                  setFiles([]);
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = "";
-                  }
-                }}
-              >
-                전체 삭제
-              </button>
+              <button onClick={handleDeleteAllFiles}>전체 삭제</button>
             </div>
             <ul className="list-none p-0 text-left">
               {files.map((file, index) => (
