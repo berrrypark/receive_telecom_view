@@ -1,34 +1,50 @@
 export interface CompareResultType {
   offline: {
     after1Month: {
-      collectionSum: number;
-      reconcileSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
       match: boolean;
     };
     after4Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
     after12Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
     after36Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
+    offlineTotalAmt: number;
+    offlineTotalSuAmt: number;
   };
   online: {
     after1Month: {
-      collectionSum: number;
-      reconcileSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
       match: boolean;
     };
     after4Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
     after12Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
     after36Month: {
-      collectionSum: number;
+      debtSum: number;
+      overdueSuamtSum: number;
+      match: boolean;
     };
+    onlineTotalAmt: number;
+    onlineTotalSuAmt: number;
   };
 };

@@ -13,67 +13,98 @@ const FileUploadPageContainer = () => {
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(true); /*useState(false);*/
   const [overdueSuamtLoaded, setOverdueSuamtLoaded] = useState(false);
-  const [collectionLoaded, setCollectionLoaded] = useState(false);
+  const [debtLoaded, setDebtLoaded] = useState(false);
 
   const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
 
-  const [offLineCollectionData, setOffLineCollectionData] = useState<CollectionData[]>([]);
-  const [onLineCollectionData, setOnLineCollectionData] = useState<CollectionData[]>([]);
-  const [offLineReconcileData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
-  const [onLineReconcileData, setOnLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+  const [offLineDebtData, setOffLineDebtData] = useState<CollectionData[]>([]);
+  const [offLineOverdueSuamtData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+
+  const [onLineDebtData, setOnLineDebtData] = useState<CollectionData[]>([]);
+  const [onLineOverdueSuamtData, setOnLineOverdueSuamtData] = useState<ReconcileData[]>([]);
   const [detailData, setDetailData] = useState<ReceiveDetail[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleOverdueSuamtCheck = () => {
-  const collectionOfflineAfter1Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-  const reconcileOfflineAfter1Month = offLineReconcileData.reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+  const handleCompareResultCheck = () => {
 
-  const collectionOnlineAfter1Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-  const reconcileOnlineAfter1Month = onLineReconcileData.reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+  const debtOfflineAfter1Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+  const overdueSuamtOfflineAfter1Month = offLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  // 같은 식으로 after4Month, after12Month, after36Month도 추가 가능
-  const collectionOfflineAfter4Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after4MonthAmt ?? 0), 0);
-  const collectionOnlineAfter4Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after4MonthAmt ?? 0), 0);
+  const debtOfflineAfter4Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
+  const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+  
+  const debtOfflineAfter12Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
+  const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const collectionOfflineAfter12Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after12MonthAmt ?? 0), 0);
-  const collectionOnlineAfter12Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after12MonthAmt ?? 0), 0);
+  const debtOfflineAfter36Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
+  const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(35, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const collectionOfflineAfter36Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after36MonthAmt ?? 0), 0);
-  const collectionOnlineAfter36Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after36MonthAmt ?? 0), 0);
+  const debtOnlineAfter1Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+  const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+
+  const debtOnlineAfter4Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
+  const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+  
+  const debtOnlineAfter12Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
+  const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+
+  const debtOnlineAfter36Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
+  const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(35, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
   setCompareResult({
       offline: {
         after1Month: {
-          collectionSum: collectionOfflineAfter1Month,
-          reconcileSum: reconcileOfflineAfter1Month,
-          match: collectionOfflineAfter1Month === reconcileOfflineAfter1Month,
+          debtSum: debtOfflineAfter1Month,
+          overdueSuamtSum: overdueSuamtOfflineAfter1Month,
+          match: Number(debtOfflineAfter1Month.toFixed(2)) === Number(overdueSuamtOfflineAfter1Month.toFixed(2)),
         },
         after4Month: {
-          collectionSum: collectionOfflineAfter4Month,
+          debtSum: debtOfflineAfter4Month,
+          overdueSuamtSum: overdueSuamtOfflineAfter4Month,
+          match: Number(debtOfflineAfter4Month.toFixed(2)) === Number(overdueSuamtOfflineAfter4Month.toFixed(2)),
         },
         after12Month: {
-          collectionSum: collectionOfflineAfter12Month,
+          debtSum: debtOfflineAfter12Month,
+          overdueSuamtSum: overdueSuamtOfflineAfter12Month,
+          match: Number(debtOfflineAfter12Month.toFixed(2)) === Number(overdueSuamtOfflineAfter12Month.toFixed(2)),
         },
         after36Month: {
-          collectionSum: collectionOfflineAfter36Month,
+          debtSum: debtOfflineAfter36Month,
+          overdueSuamtSum: overdueSuamtOfflineAfter36Month,
+          match: Number(debtOfflineAfter36Month.toFixed(2)) === Number(overdueSuamtOfflineAfter36Month.toFixed(2)),
         },
+        offlineTotalAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
+                          + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
+        offlineTotalSuAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
+                          + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
+
       },
       online: {
         after1Month: {
-          collectionSum: collectionOnlineAfter1Month,
-          reconcileSum: reconcileOnlineAfter1Month,
-          match: collectionOnlineAfter1Month === reconcileOnlineAfter1Month,
+          debtSum: debtOnlineAfter1Month,
+          overdueSuamtSum: overdueSuamtOnlineAfter1Month,
+          match: Number(debtOnlineAfter1Month.toFixed(2)) === Number(overdueSuamtOnlineAfter1Month.toFixed(2)),
         },
         after4Month: {
-          collectionSum: collectionOnlineAfter4Month,
+          debtSum: debtOnlineAfter4Month,
+          overdueSuamtSum: overdueSuamtOnlineAfter4Month,
+          match: Number(debtOnlineAfter4Month.toFixed(2)) === Number(overdueSuamtOnlineAfter4Month.toFixed(2)),
         },
         after12Month: {
-          collectionSum: collectionOnlineAfter12Month,
+          debtSum: debtOnlineAfter12Month,
+          overdueSuamtSum: overdueSuamtOnlineAfter12Month,
+          match: Number(debtOnlineAfter12Month.toFixed(2)) === Number(overdueSuamtOnlineAfter12Month.toFixed(2)),
         },
         after36Month: {
-          collectionSum: collectionOnlineAfter36Month,
+          debtSum: debtOnlineAfter36Month,
+          overdueSuamtSum: overdueSuamtOnlineAfter36Month,
+          match: Number(debtOnlineAfter36Month.toFixed(2)) === Number(overdueSuamtOnlineAfter36Month.toFixed(2)),
         },
+        onlineTotalAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
+                          + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
+        onlineTotalSuAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
+                          + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
       },
     });
   };
@@ -147,9 +178,9 @@ const FileUploadPageContainer = () => {
         alert("데이터 포맷 오류");
         return;
       }
-      setOffLineCollectionData(response.data.offLine);
-      setOnLineCollectionData(response.data.onLine);
-      setCollectionLoaded(true);
+      setOffLineDebtData(response.data.offLine);
+      setOnLineDebtData(response.data.onLine);
+      setDebtLoaded(true);
     } catch (err) {
       console.error("채권추심 상세내역 조회 실패:", err);
       alert("채권추심 상세내역 조회 실패!");
@@ -269,20 +300,20 @@ const FileUploadPageContainer = () => {
         </button>
         <button
           className={`px-4 py-2 rounded-lg text-lg ${
-            loading || !(overdueSuamtLoaded && collectionLoaded)
+            loading || !(overdueSuamtLoaded && debtLoaded)
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-yellow-500 hover:bg-yellow-600 text-white"
           }`}
-          onClick={handleOverdueSuamtCheck}
-          disabled={loading || !(overdueSuamtLoaded && collectionLoaded)}
+          onClick={handleCompareResultCheck}
+          disabled={loading || !(overdueSuamtLoaded && debtLoaded)}
         >
           🔄 대사
         </button>
       </div>
 
       {/* 3분할 레이아웃 */}
-      {(detailData.length > 0 || offLineCollectionData.length > 0 || onLineCollectionData.length > 0 
-           || offLineReconcileData.length > 0 || onLineReconcileData.length > 0) && (
+      {(detailData.length > 0 || offLineDebtData.length > 0 || onLineDebtData.length > 0 
+           || offLineOverdueSuamtData.length > 0 || onLineOverdueSuamtData.length > 0) && (
         <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4">
           {/* 왼쪽 (A) */}
           {detailData.length > 0 && (
@@ -313,11 +344,11 @@ const FileUploadPageContainer = () => {
             </div>
           )}
           {/* 오른쪽 (B+C) */}
-          {(offLineCollectionData.length > 0 || onLineCollectionData.length > 0 || offLineReconcileData.length > 0 || onLineReconcileData.length > 0) && (
+          {(offLineDebtData.length > 0 || onLineDebtData.length > 0 || offLineOverdueSuamtData.length > 0 || onLineOverdueSuamtData.length > 0) && (
             <div className="flex-1 flex flex-col gap-4">
               {/* 위쪽 (B) */}
               {/* (B) 오프라인 채권추심 상세내역 */}
-              {offLineCollectionData.length > 0 && (
+              {offLineDebtData.length > 0 && (
                 <div className="border p-2 overflow-x-auto">
                   <h3 className="text-lg font-semibold mb-2">📊 채권추심 상세내역 (OffLine)</h3>
                   <table className="min-w-full text-xs text-left border">
@@ -337,7 +368,7 @@ const FileUploadPageContainer = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {offLineCollectionData.map((item, index) => {
+                      {offLineDebtData.map((item, index) => {
                         const rowSum = [
                           item.thisMonthAmt,
                           item.after1MonthAmt,
@@ -380,7 +411,7 @@ const FileUploadPageContainer = () => {
                           "after36MonthAmt",
                           "after36MonthSuAmt",
                         ].map((field, idx) => {
-                          const colSum = offLineCollectionData.reduce(
+                          const colSum = offLineDebtData.reduce(
                             (acc, item) => acc + Number(item[field as keyof CollectionData] ?? 0),
                             0
                           );
@@ -391,7 +422,7 @@ const FileUploadPageContainer = () => {
                           );
                         })}
                         <td className="px-2 py-1 border text-right">
-                          {offLineCollectionData
+                          {offLineDebtData
                             .reduce((acc, item) => {
                               return (
                                 acc +
@@ -417,7 +448,7 @@ const FileUploadPageContainer = () => {
               )}
               {/* 아래쪽 (C) */}
               {/* (C) 온라인 채권추심 상세내역 */}
-              {onLineCollectionData.length > 0 && (
+              {onLineDebtData.length > 0 && (
                 <div className="border p-2 overflow-x-auto">
                   <h3 className="text-lg font-semibold mb-2">📊 채권추심 상세내역 (OnLine)</h3>
                   <table className="min-w-full text-xs text-left border">
@@ -437,7 +468,7 @@ const FileUploadPageContainer = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {onLineCollectionData.map((item, index) => {
+                      {onLineDebtData.map((item, index) => {
                         const rowSum = [
                           item.thisMonthAmt,
                           item.after1MonthAmt,
@@ -480,7 +511,7 @@ const FileUploadPageContainer = () => {
                           "after36MonthAmt",
                           "after36MonthSuAmt",
                         ].map((field, idx) => {
-                          const colSum = onLineCollectionData.reduce(
+                          const colSum = onLineDebtData.reduce(
                             (acc, item) => acc + Number(item[field as keyof CollectionData] ?? 0),
                             0
                           );
@@ -491,7 +522,7 @@ const FileUploadPageContainer = () => {
                           );
                         })}
                         <td className="px-2 py-1 border text-right">
-                          {onLineCollectionData
+                          {onLineDebtData
                             .reduce((acc, item) => {
                               return (
                                 acc +
@@ -516,7 +547,7 @@ const FileUploadPageContainer = () => {
                 </div>
               )}
               <div className="flex gap-4">
-                {offLineReconcileData.length > 0 && (
+                {offLineOverdueSuamtData.length > 0 && (
                   <div className="border p-2 overflow-x-auto">
                     <h3 className="text-lg font-semibold mb-2">📊 연체가산금 내역 (OffLine)</h3>
                     <table className="min-w-full text-xs text-left border">
@@ -531,7 +562,7 @@ const FileUploadPageContainer = () => {
                         <tr className="bg-gray-100 font-semibold">
                           <td className="px-2 py-1 border text-right">1개월 경과</td>
                           <td className="px-2 py-1 border text-right">
-                            {offLineReconcileData
+                            {offLineOverdueSuamtData
                               .slice(0, 3)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
@@ -540,7 +571,7 @@ const FileUploadPageContainer = () => {
                         <tr className="bg-gray-100 font-semibold">
                           <td className="px-2 py-1 border text-right">4개월 경과</td>
                           <td className="px-2 py-1 border text-right">
-                            {offLineReconcileData
+                            {offLineOverdueSuamtData
                               .slice(3, 11)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
@@ -549,7 +580,7 @@ const FileUploadPageContainer = () => {
                         <tr className="bg-gray-100 font-semibold">
                           <td className="px-2 py-1 border text-right">12개월 경과</td>
                           <td className="px-2 py-1 border text-right">
-                            {offLineReconcileData
+                            {offLineOverdueSuamtData
                               .slice(11, 35)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
@@ -558,13 +589,13 @@ const FileUploadPageContainer = () => {
                         <tr className="bg-gray-100 font-semibold">
                           <td className="px-2 py-1 border text-right">36개월 경과</td>
                           <td className="px-2 py-1 border text-right">
-                            {offLineReconcileData
-                              .slice(35, offLineReconcileData.length)
+                            {offLineOverdueSuamtData
+                              .slice(35, offLineOverdueSuamtData.length)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
                         </tr>
-                        {offLineReconcileData.map((item, index) => (
+                        {offLineOverdueSuamtData.map((item, index) => (
                           <tr key={`offline-${index}`}>
                             <td className="px-2 py-1 border">{item.cyearmon}</td>
                             <td className="px-2 py-1 border text-right">{Number(item.overdueSuamt ?? 0).toLocaleString()}</td>
@@ -574,7 +605,7 @@ const FileUploadPageContainer = () => {
                     </table>
                   </div>
                 )}
-                {onLineReconcileData.length > 0 && (
+                {onLineOverdueSuamtData.length > 0 && (
                     <div className="border p-2 overflow-x-auto">
                       <h3 className="text-lg font-semibold mb-2">📊 연체가산금 내역 (OnLine)</h3>
                       <table className="min-w-full text-xs text-left border">
@@ -589,7 +620,7 @@ const FileUploadPageContainer = () => {
                           <tr className="bg-gray-100 font-semibold">
                             <td className="px-2 py-1 border text-right">1개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {onLineReconcileData
+                              {onLineOverdueSuamtData
                                 .slice(0, 3)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
@@ -598,7 +629,7 @@ const FileUploadPageContainer = () => {
                           <tr className="bg-gray-100 font-semibold">
                             <td className="px-2 py-1 border text-right">4개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {onLineReconcileData
+                              {onLineOverdueSuamtData
                                 .slice(3, 11)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
@@ -607,7 +638,7 @@ const FileUploadPageContainer = () => {
                           <tr className="bg-gray-100 font-semibold">
                             <td className="px-2 py-1 border text-right">12개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {onLineReconcileData
+                              {onLineOverdueSuamtData
                                 .slice(11, 35)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
@@ -616,13 +647,13 @@ const FileUploadPageContainer = () => {
                           <tr className="bg-gray-100 font-semibold">
                             <td className="px-2 py-1 border text-right">36개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {onLineReconcileData
-                                .slice(35, onLineReconcileData.length)
+                              {onLineOverdueSuamtData
+                                .slice(35, onLineOverdueSuamtData.length)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
                           </tr>
-                          {onLineReconcileData.map((item, index) => (
+                          {onLineOverdueSuamtData.map((item, index) => (
                             <tr key={`online-${index}`}>
                               <td className="px-2 py-1 border">{item.cyearmon}</td>
                               <td className="px-2 py-1 border text-right">{Number(item.overdueSuamt ?? 0).toLocaleString()}</td>
@@ -634,7 +665,7 @@ const FileUploadPageContainer = () => {
                 )}
                 {compareResult && (
                   <div className="w-full max-w-7xl border p-4 mt-4">
-                    <h3 className="text-lg font-bold mb-2">📊 수납연체가산금 대사 결과</h3>
+                    <h3 className="text-lg font-bold mb-2">📊 대사 결과</h3>
 
                     {/* Offline */}
                     <div className="mb-4">
@@ -643,8 +674,8 @@ const FileUploadPageContainer = () => {
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="px-2 py-1 border">구분</th>
-                            <th className="px-2 py-1 border text-right">컬렉션 합계</th>
-                            <th className="px-2 py-1 border text-right">대사 합계</th>
+                            <th className="px-2 py-1 border text-right">채권추심 합계</th>
+                            <th className="px-2 py-1 border text-right">연체가산금 합계</th>
                             <th className="px-2 py-1 border text-center">일치 여부</th>
                           </tr>
                         </thead>
@@ -652,10 +683,10 @@ const FileUploadPageContainer = () => {
                           <tr>
                             <td className="px-2 py-1 border">1개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.offline.after1Month.collectionSum.toLocaleString()}
+                              {compareResult.offline.after1Month.debtSum.toLocaleString()}
                             </td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.offline.after1Month.reconcileSum.toLocaleString()}
+                              {compareResult.offline.after1Month.overdueSuamtSum.toLocaleString()}
                             </td>
                             <td className="px-2 py-1 border text-center">
                               {compareResult.offline.after1Month.match ? '✔️' : '❌'}
@@ -664,26 +695,38 @@ const FileUploadPageContainer = () => {
                           <tr>
                             <td className="px-2 py-1 border">4개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.offline.after4Month.collectionSum.toLocaleString()}
+                              {compareResult.offline.after4Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after4Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.offline.after4Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                           <tr>
                             <td className="px-2 py-1 border">12개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.offline.after12Month.collectionSum.toLocaleString()}
+                              {compareResult.offline.after12Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after12Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.offline.after12Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                           <tr>
                             <td className="px-2 py-1 border">36개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.offline.after36Month.collectionSum.toLocaleString()}
+                              {compareResult.offline.after36Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after36Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.offline.after36Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -696,8 +739,8 @@ const FileUploadPageContainer = () => {
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="px-2 py-1 border">구분</th>
-                            <th className="px-2 py-1 border text-right">컬렉션 합계</th>
-                            <th className="px-2 py-1 border text-right">대사 합계</th>
+                            <th className="px-2 py-1 border text-right">채권추심 합계</th>
+                            <th className="px-2 py-1 border text-right">연체가산금 합계</th>
                             <th className="px-2 py-1 border text-center">일치 여부</th>
                           </tr>
                         </thead>
@@ -705,10 +748,10 @@ const FileUploadPageContainer = () => {
                           <tr>
                             <td className="px-2 py-1 border">1개월 경과</td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.online.after1Month.collectionSum.toLocaleString()}
+                              {compareResult.online.after1Month.debtSum.toLocaleString()}
                             </td>
                             <td className="px-2 py-1 border text-right">
-                              {compareResult.online.after1Month.reconcileSum.toLocaleString()}
+                              {compareResult.online.after1Month.overdueSuamtSum.toLocaleString()}
                             </td>
                             <td className="px-2 py-1 border text-center">
                               {compareResult.online.after1Month.match ? '✔️' : '❌'}
@@ -716,30 +759,69 @@ const FileUploadPageContainer = () => {
                           </tr>
                           <tr>
                             <td className="px-2 py-1 border">4개월 경과</td>
-                            <td className="px-2 py-1 border text-right">
-                              {compareResult.online.after4Month.collectionSum.toLocaleString()}
+                             <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after4Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after4Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.online.after4Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                           <tr>
                             <td className="px-2 py-1 border">12개월 경과</td>
-                            <td className="px-2 py-1 border text-right">
-                              {compareResult.online.after12Month.collectionSum.toLocaleString()}
+                             <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after12Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after12Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.online.after12Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                           <tr>
                             <td className="px-2 py-1 border">36개월 경과</td>
-                            <td className="px-2 py-1 border text-right">
-                              {compareResult.online.after36Month.collectionSum.toLocaleString()}
+                             <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after36Month.debtSum.toLocaleString()}
                             </td>
-                            <td className="px-2 py-1 border text-right">-</td>
-                            <td className="px-2 py-1 border text-center">-</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after36Month.overdueSuamtSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.online.after36Month.match ? '✔️' : '❌'}
+                            </td>
                           </tr>
                         </tbody>
                       </table>
+                    </div>
+
+                    {/* 정산서 비교용 */}
+                    <div className="w-full max-w-7xl border p-4 mt-4">
+                      <h3 className="text-lg font-bold mb-2">📊 정산서 비교용</h3>
+                      <div>
+                        <div>
+                          <h4 className="text-md font-semibold mb-1">🔍 오프라인 당월청구수납 + 연체수납</h4>
+                            <div className="px-2 py-1 border text-right">
+                              <p>{Number(compareResult.offline.offlineTotalAmt).toLocaleString()} 원</p>
+                            </div>
+                          <h4 className="text-md font-semibold mb-1">🔍 오프라인 연체가산금 수납</h4>
+                            <div className="px-2 py-1 border text-right">
+                              <p>{Number(compareResult.offline.offlineTotalSuAmt).toLocaleString()} 원</p>
+                            </div>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-semibold mb-1">🔍 온라인 당월청구수납 + 연체수납</h4>
+                            <div className="px-2 py-1 border text-right">
+                              <p>{Number(compareResult.online.onlineTotalAmt).toLocaleString()} 원</p>
+                            </div>
+                          <h4 className="text-md font-semibold mb-1">🔍 온라인 연체가산금 수납</h4>
+                            <div className="px-2 py-1 border text-right">
+                              <p>{Number(compareResult.online.onlineTotalSuAmt).toLocaleString()} 원</p>
+                            </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
