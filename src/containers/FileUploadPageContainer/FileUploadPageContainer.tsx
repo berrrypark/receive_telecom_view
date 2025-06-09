@@ -4,17 +4,79 @@ import { MdDelete } from "react-icons/md";
 
 import type { CollectionData } from "../../common/types/collection";
 import type { ReceiveDetail } from "../../common/types/receive";
+import type { ReconcileData } from "../../common/types/reconcile";
+import type { CompareResultType } from "../../common/types/compare";
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(true); /*useState(false);*/
+  const [overdueSuamtLoaded, setOverdueSuamtLoaded] = useState(false);
+  const [collectionLoaded, setCollectionLoaded] = useState(false);
+
+  const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
 
   const [offLineCollectionData, setOffLineCollectionData] = useState<CollectionData[]>([]);
   const [onLineCollectionData, setOnLineCollectionData] = useState<CollectionData[]>([]);
+  const [offLineReconcileData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+  const [onLineReconcileData, setOnLineOverdueSuamtData] = useState<ReconcileData[]>([]);
   const [detailData, setDetailData] = useState<ReceiveDetail[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleOverdueSuamtCheck = () => {
+  const collectionOfflineAfter1Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+  const reconcileOfflineAfter1Month = offLineReconcileData.reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+
+  const collectionOnlineAfter1Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+  const reconcileOnlineAfter1Month = onLineReconcileData.reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+
+  // 같은 식으로 after4Month, after12Month, after36Month도 추가 가능
+  const collectionOfflineAfter4Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after4MonthAmt ?? 0), 0);
+  const collectionOnlineAfter4Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after4MonthAmt ?? 0), 0);
+
+  const collectionOfflineAfter12Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after12MonthAmt ?? 0), 0);
+  const collectionOnlineAfter12Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after12MonthAmt ?? 0), 0);
+
+  const collectionOfflineAfter36Month = offLineCollectionData.reduce((acc, item) => acc + Number(item.after36MonthAmt ?? 0), 0);
+  const collectionOnlineAfter36Month = onLineCollectionData.reduce((acc, item) => acc + Number(item.after36MonthAmt ?? 0), 0);
+
+  setCompareResult({
+      offline: {
+        after1Month: {
+          collectionSum: collectionOfflineAfter1Month,
+          reconcileSum: reconcileOfflineAfter1Month,
+          match: collectionOfflineAfter1Month === reconcileOfflineAfter1Month,
+        },
+        after4Month: {
+          collectionSum: collectionOfflineAfter4Month,
+        },
+        after12Month: {
+          collectionSum: collectionOfflineAfter12Month,
+        },
+        after36Month: {
+          collectionSum: collectionOfflineAfter36Month,
+        },
+      },
+      online: {
+        after1Month: {
+          collectionSum: collectionOnlineAfter1Month,
+          reconcileSum: reconcileOnlineAfter1Month,
+          match: collectionOnlineAfter1Month === reconcileOnlineAfter1Month,
+        },
+        after4Month: {
+          collectionSum: collectionOnlineAfter4Month,
+        },
+        after12Month: {
+          collectionSum: collectionOnlineAfter12Month,
+        },
+        after36Month: {
+          collectionSum: collectionOnlineAfter36Month,
+        },
+      },
+    });
+  };
 
   const handleFileChange = (selectedFiles: File[]) => {
     setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
@@ -47,8 +109,9 @@ const FileUploadPageContainer = () => {
   const handleStart = async () => {
     setLoading(true);
     try {
-      await axios.post("/api/receive/lg/start");
-      alert("수납 데이터 정산 완료!");
+      const response = await axios.post("/api/receive/lg/start");
+      alert("수납 데이터 정산 완료! " + response.data + "건");
+      setDataLoaded(true);
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
       alert("수납 데이터 처리 실패!");
@@ -86,9 +149,30 @@ const FileUploadPageContainer = () => {
       }
       setOffLineCollectionData(response.data.offLine);
       setOnLineCollectionData(response.data.onLine);
+      setCollectionLoaded(true);
     } catch (err) {
       console.error("채권추심 상세내역 조회 실패:", err);
       alert("채권추심 상세내역 조회 실패!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOverdueSuamt = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/receive/lg/overdue");
+      if (!response.data || !Array.isArray(response.data.offLine) || !Array.isArray(response.data.onLine)) {
+        console.error("API 응답 포맷 오류:", response.data);
+        alert("데이터 포맷 오류");
+        return;
+      }
+      setOffLineOverdueSuamtData(response.data.offLine);
+      setOnLineOverdueSuamtData(response.data.onLine);
+      setOverdueSuamtLoaded(true);
+    } catch (err) {
+      console.error("수납연체가산금 대사 실패:", err);
+      alert("수납연체가산금 대사 실패!");
     } finally {
       setLoading(false);
     }
@@ -118,7 +202,9 @@ const FileUploadPageContainer = () => {
           <button
             onClick={handleUpload}
             disabled={files.length === 0 || loading}
-            className={`text-blue-800 hover:text-blue-950 ${files.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
+            className={`text-blue-800 hover:text-blue-950 ${
+              files.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+            }`}
           >
             업로드
           </button>
@@ -156,26 +242,47 @@ const FileUploadPageContainer = () => {
         </button>
         <button
           className={`px-4 py-2 rounded-lg text-lg ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500 hover:bg-purple-600 text-white"
+            loading || !dataLoaded ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500 hover:bg-purple-600 text-white"
           }`}
           onClick={handleDetail}
-          disabled={loading}
+          disabled={loading || !dataLoaded}
         >
           상세내역 조회
         </button>
         <button
           className={`px-4 py-2 rounded-lg text-lg ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
+            loading || !dataLoaded ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
           }`}
           onClick={handleCollectionDetail}
-          disabled={loading}
+          disabled={loading || !dataLoaded}
         >
           채권추심 상세내역 조회
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg text-lg ${
+            loading || !dataLoaded ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 text-white"
+          }`}
+          onClick={handleOverdueSuamt}
+          disabled={loading || !dataLoaded}
+        >
+          수납연체가산금 조회
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg text-lg ${
+            loading || !(overdueSuamtLoaded && collectionLoaded)
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-yellow-500 hover:bg-yellow-600 text-white"
+          }`}
+          onClick={handleOverdueSuamtCheck}
+          disabled={loading || !(overdueSuamtLoaded && collectionLoaded)}
+        >
+          🔄 대사
         </button>
       </div>
 
       {/* 3분할 레이아웃 */}
-      {(detailData.length > 0 || offLineCollectionData.length > 0 || onLineCollectionData.length > 0) && (
+      {(detailData.length > 0 || offLineCollectionData.length > 0 || onLineCollectionData.length > 0 
+           || offLineReconcileData.length > 0 || onLineReconcileData.length > 0) && (
         <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4">
           {/* 왼쪽 (A) */}
           {detailData.length > 0 && (
@@ -206,7 +313,7 @@ const FileUploadPageContainer = () => {
             </div>
           )}
           {/* 오른쪽 (B+C) */}
-          {(offLineCollectionData.length > 0 || onLineCollectionData.length > 0) && (
+          {(offLineCollectionData.length > 0 || onLineCollectionData.length > 0 || offLineReconcileData.length > 0 || onLineReconcileData.length > 0) && (
             <div className="flex-1 flex flex-col gap-4">
               {/* 위쪽 (B) */}
               {/* (B) 오프라인 채권추심 상세내역 */}
@@ -408,6 +515,235 @@ const FileUploadPageContainer = () => {
                   </table>
                 </div>
               )}
+              <div className="flex gap-4">
+                {offLineReconcileData.length > 0 && (
+                  <div className="border p-2 overflow-x-auto">
+                    <h3 className="text-lg font-semibold mb-2">📊 연체가산금 내역 (OffLine)</h3>
+                    <table className="min-w-full text-xs text-left border">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="px-2 py-1 border">거래월</th>
+                          <th className="px-2 py-1 border text-right">연체가산금</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* 누적합계 행 */}
+                        <tr className="bg-gray-100 font-semibold">
+                          <td className="px-2 py-1 border text-right">1개월 경과</td>
+                          <td className="px-2 py-1 border text-right">
+                            {offLineReconcileData
+                              .slice(0, 3)
+                              .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                              .toLocaleString()}
+                          </td>
+                        </tr>
+                        <tr className="bg-gray-100 font-semibold">
+                          <td className="px-2 py-1 border text-right">4개월 경과</td>
+                          <td className="px-2 py-1 border text-right">
+                            {offLineReconcileData
+                              .slice(3, 11)
+                              .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                              .toLocaleString()}
+                          </td>
+                        </tr>
+                        <tr className="bg-gray-100 font-semibold">
+                          <td className="px-2 py-1 border text-right">12개월 경과</td>
+                          <td className="px-2 py-1 border text-right">
+                            {offLineReconcileData
+                              .slice(11, 35)
+                              .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                              .toLocaleString()}
+                          </td>
+                        </tr>
+                        <tr className="bg-gray-100 font-semibold">
+                          <td className="px-2 py-1 border text-right">36개월 경과</td>
+                          <td className="px-2 py-1 border text-right">
+                            {offLineReconcileData
+                              .slice(35, offLineReconcileData.length)
+                              .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                              .toLocaleString()}
+                          </td>
+                        </tr>
+                        {offLineReconcileData.map((item, index) => (
+                          <tr key={`offline-${index}`}>
+                            <td className="px-2 py-1 border">{item.cyearmon}</td>
+                            <td className="px-2 py-1 border text-right">{Number(item.overdueSuamt ?? 0).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {onLineReconcileData.length > 0 && (
+                    <div className="border p-2 overflow-x-auto">
+                      <h3 className="text-lg font-semibold mb-2">📊 연체가산금 내역 (OnLine)</h3>
+                      <table className="min-w-full text-xs text-left border">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-2 py-1 border">거래월</th>
+                            <th className="px-2 py-1 border text-right">연체가산금</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* 누적합계 행 */}
+                          <tr className="bg-gray-100 font-semibold">
+                            <td className="px-2 py-1 border text-right">1개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {onLineReconcileData
+                                .slice(0, 3)
+                                .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                                .toLocaleString()}
+                            </td>
+                          </tr>
+                          <tr className="bg-gray-100 font-semibold">
+                            <td className="px-2 py-1 border text-right">4개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {onLineReconcileData
+                                .slice(3, 11)
+                                .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                                .toLocaleString()}
+                            </td>
+                          </tr>
+                          <tr className="bg-gray-100 font-semibold">
+                            <td className="px-2 py-1 border text-right">12개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {onLineReconcileData
+                                .slice(11, 35)
+                                .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                                .toLocaleString()}
+                            </td>
+                          </tr>
+                          <tr className="bg-gray-100 font-semibold">
+                            <td className="px-2 py-1 border text-right">36개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {onLineReconcileData
+                                .slice(35, onLineReconcileData.length)
+                                .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
+                                .toLocaleString()}
+                            </td>
+                          </tr>
+                          {onLineReconcileData.map((item, index) => (
+                            <tr key={`online-${index}`}>
+                              <td className="px-2 py-1 border">{item.cyearmon}</td>
+                              <td className="px-2 py-1 border text-right">{Number(item.overdueSuamt ?? 0).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                )}
+                {compareResult && (
+                  <div className="w-full max-w-7xl border p-4 mt-4">
+                    <h3 className="text-lg font-bold mb-2">📊 수납연체가산금 대사 결과</h3>
+
+                    {/* Offline */}
+                    <div className="mb-4">
+                      <h4 className="text-md font-semibold mb-1">🔍 오프라인</h4>
+                      <table className="min-w-full text-xs text-left border">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-2 py-1 border">구분</th>
+                            <th className="px-2 py-1 border text-right">컬렉션 합계</th>
+                            <th className="px-2 py-1 border text-right">대사 합계</th>
+                            <th className="px-2 py-1 border text-center">일치 여부</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="px-2 py-1 border">1개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after1Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after1Month.reconcileSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.offline.after1Month.match ? '✔️' : '❌'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">4개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after4Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">12개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after12Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">36개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.offline.after36Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Online */}
+                    <div>
+                      <h4 className="text-md font-semibold mb-1">🔍 온라인</h4>
+                      <table className="min-w-full text-xs text-left border">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-2 py-1 border">구분</th>
+                            <th className="px-2 py-1 border text-right">컬렉션 합계</th>
+                            <th className="px-2 py-1 border text-right">대사 합계</th>
+                            <th className="px-2 py-1 border text-center">일치 여부</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="px-2 py-1 border">1개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after1Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after1Month.reconcileSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-center">
+                              {compareResult.online.after1Month.match ? '✔️' : '❌'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">4개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after4Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">12개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after12Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                          <tr>
+                            <td className="px-2 py-1 border">36개월 경과</td>
+                            <td className="px-2 py-1 border text-right">
+                              {compareResult.online.after36Month.collectionSum.toLocaleString()}
+                            </td>
+                            <td className="px-2 py-1 border text-right">-</td>
+                            <td className="px-2 py-1 border text-center">-</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
