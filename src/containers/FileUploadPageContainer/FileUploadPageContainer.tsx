@@ -11,14 +11,22 @@ import FileUploadButton from "../../components/FileUploadButton/FileUploadButton
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(true); /*useState(false);*/
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [overdueSuamtLoaded, setOverdueSuamtLoaded] = useState(false);
   const [debtLoaded, setDebtLoaded] = useState(false);
+  const [showStartButton, setShowStartButton] = useState(false);
 
   const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
 
   const [offLineDebtData, setOffLineDebtData] = useState<CollectionData[]>([]);
   const [offLineOverdueSuamtData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+
+  const [offlineAmtChecked, setOfflineAmtChecked] = useState(false);
+  const [offlineSuAmtChecked, setOfflineSuAmtChecked] = useState(false);
+  const [onlineAmtChecked, setOnlineAmtChecked] = useState(false);
+  const [onlineSuAmtChecked, setOnlineSuAmtChecked] = useState(false);
+
+  const allChecked = offlineAmtChecked && offlineSuAmtChecked && onlineAmtChecked && onlineSuAmtChecked;
 
   const [onLineDebtData, setOnLineDebtData] = useState<CollectionData[]>([]);
   const [onLineOverdueSuamtData, setOnLineOverdueSuamtData] = useState<ReconcileData[]>([]);
@@ -28,85 +36,87 @@ const FileUploadPageContainer = () => {
 
   const handleCompareResultCheck = () => {
 
-  const debtOfflineAfter1Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-  const overdueSuamtOfflineAfter1Month = offLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOfflineAfter1Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+    const overdueSuamtOfflineAfter1Month = offLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const debtOfflineAfter4Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
-  const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
-  
-  const debtOfflineAfter12Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-  const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOfflineAfter4Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
+    const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    
+    const debtOfflineAfter12Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
+    const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const debtOfflineAfter36Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
-  const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(35, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOfflineAfter36Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
+    const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(35, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const debtOnlineAfter1Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-  const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOnlineAfter1Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
+    const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const debtOnlineAfter4Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
-  const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
-  
-  const debtOnlineAfter12Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-  const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOnlineAfter4Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
+    const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    
+    const debtOnlineAfter12Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
+    const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  const debtOnlineAfter36Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
-  const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(35, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const debtOnlineAfter36Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
+    const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(35, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
-  setCompareResult({
-      offline: {
-        after1Month: {
-          debtSum: debtOfflineAfter1Month,
-          overdueSuamtSum: overdueSuamtOfflineAfter1Month,
-          match: Number(debtOfflineAfter1Month.toFixed(2)) === Number(overdueSuamtOfflineAfter1Month.toFixed(2)),
-        },
-        after4Month: {
-          debtSum: debtOfflineAfter4Month,
-          overdueSuamtSum: overdueSuamtOfflineAfter4Month,
-          match: Number(debtOfflineAfter4Month.toFixed(2)) === Number(overdueSuamtOfflineAfter4Month.toFixed(2)),
-        },
-        after12Month: {
-          debtSum: debtOfflineAfter12Month,
-          overdueSuamtSum: overdueSuamtOfflineAfter12Month,
-          match: Number(debtOfflineAfter12Month.toFixed(2)) === Number(overdueSuamtOfflineAfter12Month.toFixed(2)),
-        },
-        after36Month: {
-          debtSum: debtOfflineAfter36Month,
-          overdueSuamtSum: overdueSuamtOfflineAfter36Month,
-          match: Number(debtOfflineAfter36Month.toFixed(2)) === Number(overdueSuamtOfflineAfter36Month.toFixed(2)),
-        },
-        offlineTotalAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
-                          + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
-        offlineTotalSuAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
-                          + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
+    setCompareResult({
+        offline: {
+          after1Month: {
+            debtSum: debtOfflineAfter1Month,
+            overdueSuamtSum: overdueSuamtOfflineAfter1Month,
+            match: Number(debtOfflineAfter1Month.toFixed(2)) === Number(overdueSuamtOfflineAfter1Month.toFixed(2)),
+          },
+          after4Month: {
+            debtSum: debtOfflineAfter4Month,
+            overdueSuamtSum: overdueSuamtOfflineAfter4Month,
+            match: Number(debtOfflineAfter4Month.toFixed(2)) === Number(overdueSuamtOfflineAfter4Month.toFixed(2)),
+          },
+          after12Month: {
+            debtSum: debtOfflineAfter12Month,
+            overdueSuamtSum: overdueSuamtOfflineAfter12Month,
+            match: Number(debtOfflineAfter12Month.toFixed(2)) === Number(overdueSuamtOfflineAfter12Month.toFixed(2)),
+          },
+          after36Month: {
+            debtSum: debtOfflineAfter36Month,
+            overdueSuamtSum: overdueSuamtOfflineAfter36Month,
+            match: Number(debtOfflineAfter36Month.toFixed(2)) === Number(overdueSuamtOfflineAfter36Month.toFixed(2)),
+          },
+          offlineTotalAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
+                            + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
+          offlineTotalSuAmt: offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
+                            + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
 
-      },
-      online: {
-        after1Month: {
-          debtSum: debtOnlineAfter1Month,
-          overdueSuamtSum: overdueSuamtOnlineAfter1Month,
-          match: Number(debtOnlineAfter1Month.toFixed(2)) === Number(overdueSuamtOnlineAfter1Month.toFixed(2)),
         },
-        after4Month: {
-          debtSum: debtOnlineAfter4Month,
-          overdueSuamtSum: overdueSuamtOnlineAfter4Month,
-          match: Number(debtOnlineAfter4Month.toFixed(2)) === Number(overdueSuamtOnlineAfter4Month.toFixed(2)),
+        online: {
+          after1Month: {
+            debtSum: debtOnlineAfter1Month,
+            overdueSuamtSum: overdueSuamtOnlineAfter1Month,
+            match: Number(debtOnlineAfter1Month.toFixed(2)) === Number(overdueSuamtOnlineAfter1Month.toFixed(2)),
+          },
+          after4Month: {
+            debtSum: debtOnlineAfter4Month,
+            overdueSuamtSum: overdueSuamtOnlineAfter4Month,
+            match: Number(debtOnlineAfter4Month.toFixed(2)) === Number(overdueSuamtOnlineAfter4Month.toFixed(2)),
+          },
+          after12Month: {
+            debtSum: debtOnlineAfter12Month,
+            overdueSuamtSum: overdueSuamtOnlineAfter12Month,
+            match: Number(debtOnlineAfter12Month.toFixed(2)) === Number(overdueSuamtOnlineAfter12Month.toFixed(2)),
+          },
+          after36Month: {
+            debtSum: debtOnlineAfter36Month,
+            overdueSuamtSum: overdueSuamtOnlineAfter36Month,
+            match: Number(debtOnlineAfter36Month.toFixed(2)) === Number(overdueSuamtOnlineAfter36Month.toFixed(2)),
+          },
+          onlineTotalAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
+                            + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
+          onlineTotalSuAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
+                            + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
         },
-        after12Month: {
-          debtSum: debtOnlineAfter12Month,
-          overdueSuamtSum: overdueSuamtOnlineAfter12Month,
-          match: Number(debtOnlineAfter12Month.toFixed(2)) === Number(overdueSuamtOnlineAfter12Month.toFixed(2)),
-        },
-        after36Month: {
-          debtSum: debtOnlineAfter36Month,
-          overdueSuamtSum: overdueSuamtOnlineAfter36Month,
-          match: Number(debtOnlineAfter36Month.toFixed(2)) === Number(overdueSuamtOnlineAfter36Month.toFixed(2)),
-        },
-        onlineTotalAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.thisMonthAmt ?? 0) + Number(item.after1MonthAmt ?? 0) 
-                          + Number(item.after4MonthAmt ?? 0) + Number(item.after12MonthAmt ?? 0) + Number(item.after36MonthAmt ?? 0), 0),
-        onlineTotalSuAmt: onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0) 
-                          + Number(item.after4MonthSuAmt ?? 0) + Number(item.after12MonthSuAmt ?? 0) + Number(item.after36MonthSuAmt ?? 0), 0),
-      },
-    });
+      });
+
+      setShowStartButton(true);
   };
 
   const handleFileChange = (selectedFiles: File[]) => {
@@ -223,6 +233,24 @@ const FileUploadPageContainer = () => {
     }
   };
 
+  const handleStartButtonClick = async () => {
+    const userConfirmed = window.confirm("대사를 완료하셨습니까?");
+    if (userConfirmed) {
+      setLoading(true);
+      try {
+        await axios.post("/api/sunab/start");
+        alert("수납이 시작되었습니다!");
+      } catch (err) {
+        console.error("수납 시작 실패:", err);
+        alert("수납 시작 실패!");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      alert("수납이 취소되었습니다.");
+    }
+  };
+
   return (
     <div className="h-full w-full flex flex-col items-center">
       {/* 파일 업로드 */}
@@ -258,6 +286,16 @@ const FileUploadPageContainer = () => {
             </ul>
           </div>
         )}
+      </div>
+
+      {/* 주의 사항 */}
+      <div className="w-full flex flex-col items-center">
+        <h2 className="mb-2 text-xl font-bold">주의 사항</h2>
+        <p className="mb-8 text-red-500 font-bold">임시 테이블에 적재하여 데이터를 비교하는 공간입니다. 정산월이 지나면 데이터가 틀어질 수 있습니다.</p>
+        <p className="mb-8 text-red-500 font-bold">1. 수납 파일 업로드</p>
+        <p className="mb-8 text-red-500 font-bold">2. 수납 데이터 적재</p>
+        <p className="mb-8 text-red-500 font-bold">3. 채권추심 상세내역 조외 + 수납연체가산금 조회 = 대사 가능</p>
+        <p className="mb-8 text-red-500 font-bold">4. 대사 완료 이후 수납시작 가능</p>
       </div>
 
       {/* 버튼 */}
@@ -309,6 +347,17 @@ const FileUploadPageContainer = () => {
         >
           🔄 대사
         </button>
+        {compareResult && showStartButton && (
+          <button
+            onClick={handleStartButtonClick}
+            className={`px-4 py-2 rounded-lg text-lg ${
+              loading || !allChecked ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
+            disabled={loading || !allChecked}
+          >
+            🚨 수납시작
+          </button>
+        )}
       </div>
 
       {/* 3분할 레이아웃 */}
@@ -804,21 +853,25 @@ const FileUploadPageContainer = () => {
                         <div>
                           <h4 className="text-md font-semibold mb-1">🔍 오프라인 당월청구수납 + 연체수납</h4>
                             <div className="px-2 py-1 border text-right">
-                              <p>{Number(compareResult.offline.offlineTotalAmt).toLocaleString()} 원</p>
+                              <p>{Number(compareResult.offline.offlineTotalAmt).toLocaleString()} 원
+                              확인 완료<input type="checkbox" checked={offlineAmtChecked} onChange={(e) => setOfflineAmtChecked(e.target.checked)} /></p>
                             </div>
                           <h4 className="text-md font-semibold mb-1">🔍 오프라인 연체가산금 수납</h4>
                             <div className="px-2 py-1 border text-right">
-                              <p>{Number(compareResult.offline.offlineTotalSuAmt).toLocaleString()} 원</p>
+                              <p>{Number(compareResult.offline.offlineTotalSuAmt).toLocaleString()} 원
+                              확인 완료<input type="checkbox" checked={offlineSuAmtChecked} onChange={(e) => setOfflineSuAmtChecked(e.target.checked)} /></p>
                             </div>
                         </div>
                         <div>
                           <h4 className="text-md font-semibold mb-1">🔍 온라인 당월청구수납 + 연체수납</h4>
                             <div className="px-2 py-1 border text-right">
-                              <p>{Number(compareResult.online.onlineTotalAmt).toLocaleString()} 원</p>
+                              <p>{Number(compareResult.online.onlineTotalAmt).toLocaleString()} 원
+                              확인 완료<input type="checkbox" checked={onlineAmtChecked} onChange={(e) => setOnlineAmtChecked(e.target.checked)} /></p>
                             </div>
                           <h4 className="text-md font-semibold mb-1">🔍 온라인 연체가산금 수납</h4>
                             <div className="px-2 py-1 border text-right">
-                              <p>{Number(compareResult.online.onlineTotalSuAmt).toLocaleString()} 원</p>
+                              <p>{Number(compareResult.online.onlineTotalSuAmt).toLocaleString()} 원
+                              확인 완료<input type="checkbox" checked={onlineSuAmtChecked} onChange={(e) => setOnlineSuAmtChecked(e.target.checked)} /></p>
                             </div>
                         </div>
                       </div>
