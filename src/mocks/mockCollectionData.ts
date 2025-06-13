@@ -1,4 +1,4 @@
-import type { CollectionData } from "../common/types/collection";
+import type { CollectionData } from "../common/types/lg/collection";
 
 export const mockOfflineCollectionData: CollectionData[] = [
   {

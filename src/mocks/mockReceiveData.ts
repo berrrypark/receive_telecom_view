@@ -1,4 +1,4 @@
-import type { ReceiveDetail } from "../common/types/receive";
+import type { ReceiveDetail } from "../common/types/lg/receive";
 
 export const mockReceiveData: ReceiveDetail[] = [
   {

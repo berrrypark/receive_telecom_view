@@ -5,9 +5,12 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
+import type { ReconcileSumData } from "../../common/types/skt/reconcileSum";
+
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [reconcileSumData, setReconcileSumData] = useState<ReconcileSumData[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -25,7 +28,7 @@ const FileUploadPageContainer = () => {
 
     setLoading(true);
     try {
-      await axios.post("/api/upload/multiple/lg", formData, {
+      await axios.post("/api/upload/multiple/skt", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -42,11 +45,29 @@ const FileUploadPageContainer = () => {
   const handleStart = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("/api/receive/lg/start");
+      const response = await axios.post("/api/receive/skt/start");
       alert("수납 데이터 적재 완료! " + response.data + "건");
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
       alert("수납 데이터 처리 실패!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDetail = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/receive/skt/reconcile");
+      if (!Array.isArray(response.data)) {
+        console.error("API 응답이 배열이 아닙니다:", response.data);
+        alert("데이터 포맷 오류");
+        return;
+      }
+      setReconcileSumData(response.data);
+    } catch (err) {
+      console.error("상세내역 조회 실패:", err);
+      alert("상세내역 조회 실패!");
     } finally {
       setLoading(false);
     }
@@ -146,7 +167,44 @@ const FileUploadPageContainer = () => {
         >
           수납 데이터 적재
         </button>
+        <button
+          className={`px-4 py-2 rounded-lg text-lg ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500 hover:bg-purple-600 text-white"
+          }`}
+          onClick={handleDetail}
+          disabled={loading}
+        >
+          다날거래 내역 조회
+        </button>
       </div>
+
+      {/* 레이아웃 */}
+      {reconcileSumData.length > 0 && (
+          <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4">
+            {/* 왼쪽 (A) */}
+            {reconcileSumData.length > 0 && (
+              <div className="flex-1 border p-2 overflow-x-auto">
+                <h3 className="text-lg font-semibold mb-2">📊 상세내역</h3>
+                <table className="min-w-full text-xs text-left border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-2 py-1 border">합계</th>
+                      <th className="px-2 py-1 border">MOID합계</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reconcileSumData.map((item, index) => (
+                      <tr key={`detail-${index}`}>
+                        <td className="px-2 py-1 border text-right">{Number(item.amt ?? 0).toLocaleString()}</td>
+                        <td className="px-2 py-1 border text-right">{Number(item.moidAmt ?? 0).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+      )}
     </div>
   );
 };

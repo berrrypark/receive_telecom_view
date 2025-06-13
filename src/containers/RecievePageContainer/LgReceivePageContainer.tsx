@@ -7,7 +7,6 @@ import type { CollectionData } from "../../common/types/lg/collection";
 import type { ReceiveDetail } from "../../common/types/lg/receive";
 import type { ReconcileData } from "../../common/types/lg/reconcile";
 import type { CompareResultType } from "../../common/types/lg/compare";
-
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
 const FileUploadPageContainer = () => {
@@ -153,7 +152,7 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/lg/start");
-      alert("수납 데이터 적재 완료! " + response.data + "건");
+      alert("수납 데이터 정산 완료! " + response.data + "건");
       setDataLoaded(true);
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);

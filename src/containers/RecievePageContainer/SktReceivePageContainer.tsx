@@ -7,7 +7,6 @@ import type { CollectionData } from "../../common/types/lg/collection";
 import type { ReceiveDetail } from "../../common/types/lg/receive";
 import type { ReconcileData } from "../../common/types/lg/reconcile";
 import type { CompareResultType } from "../../common/types/lg/compare";
-
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
 const FileUploadPageContainer = () => {
@@ -153,7 +152,7 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/lg/start");
-      alert("수납 데이터 적재 완료! " + response.data + "건");
+      alert("수납 데이터 정산 완료! " + response.data + "건");
       setDataLoaded(true);
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
@@ -281,7 +280,7 @@ const FileUploadPageContainer = () => {
     <div className="h-full w-full flex flex-col items-center">
       {/* 파일 업로드 */}
       <div className="w-[360px] flex flex-col justify-center items-center rounded-lg border border-gray-500 p-4 mb-4">
-        <h2 className="mb-8 text-xl font-bold">📁 LG 수납 파일 업로드</h2>
+        <h2 className="mb-8 text-xl font-bold">📁 SKT 수납 파일 업로드</h2>
         <div className="flex justify-between w-full">
           <FileUploadButton files={files} inputRef={fileInputRef} onChange={handleFileChange} />
           <button
