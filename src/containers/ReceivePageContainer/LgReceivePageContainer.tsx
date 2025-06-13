@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import axios from "axios";
 import { MdDelete } from "react-icons/md";
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 import type { CollectionData } from "../../common/types/collection";
 import type { ReceiveDetail } from "../../common/types/receive";
@@ -133,7 +134,7 @@ const FileUploadPageContainer = () => {
 
     setLoading(true);
     try {
-      await axios.post("/api/upload/multiple", formData, {
+      await axios.post("/api/upload/multiple/lg", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -151,7 +152,7 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/lg/start");
-      alert("수납 데이터 정산 완료! " + response.data + "건");
+      alert("수납 데이터 적재 완료! " + response.data + "건");
       setDataLoaded(true);
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
@@ -251,6 +252,30 @@ const FileUploadPageContainer = () => {
     }
   };
 
+  function TooltipExample() {
+    return (
+      <Tooltip.Provider>
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <button className="ml-2 text-blue-500 font-bold">❓</button>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content
+              side="top"
+              className="bg-gray-100 p-3 rounded shadow text-sm max-w-xd whitespace-pre-line text-black z-50"
+            >
+                        {`1. 수납 파일 업로드
+            2. 수납 데이터 적재
+            3. 채권추심 상세내역 조회 + 수납연체가산금 조회 = 대사 가능
+            4. 대사 완료 이후 수납시작 가능`}
+              <Tooltip.Arrow className="fill-gray-100" />
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      </Tooltip.Provider>
+    );
+  }
+
   return (
     <div className="h-full w-full flex flex-col items-center">
       {/* 파일 업로드 */}
@@ -291,11 +316,9 @@ const FileUploadPageContainer = () => {
       {/* 주의 사항 */}
       <div className="w-full flex flex-col items-center">
         <h2 className="mb-2 text-xl font-bold">주의 사항</h2>
-        <p className="mb-8 text-red-500 font-bold">임시 테이블에 적재하여 데이터를 비교하는 공간입니다. 정산월이 지나면 데이터가 틀어질 수 있습니다.</p>
-        <p className="mb-8 text-red-500 font-bold">1. 수납 파일 업로드</p>
-        <p className="mb-8 text-red-500 font-bold">2. 수납 데이터 적재</p>
-        <p className="mb-8 text-red-500 font-bold">3. 채권추심 상세내역 조외 + 수납연체가산금 조회 = 대사 가능</p>
-        <p className="mb-8 text-red-500 font-bold">4. 대사 완료 이후 수납시작 가능</p>
+        <p className="mb-8 text-red-500 font-bold">임시 테이블에 적재하여 데이터를 비교하는 공간입니다. 정산월이 지나면 데이터가 틀어질 수 있습니다.
+          <TooltipExample />
+        </p>
       </div>
 
       {/* 버튼 */}
