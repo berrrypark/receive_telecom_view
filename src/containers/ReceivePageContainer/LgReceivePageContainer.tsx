@@ -7,21 +7,24 @@ import type { CollectionData } from "../../common/types/lg/collection";
 import type { ReceiveDetail } from "../../common/types/lg/receive";
 import type { ReconcileData } from "../../common/types/lg/reconcile";
 import type { CompareResultType } from "../../common/types/lg/compare";
+import type { CheckMap } from "../../common/types/lg/check";
 
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(true);
   const [overdueSuamtLoaded, setOverdueSuamtLoaded] = useState(false);
   const [debtLoaded, setDebtLoaded] = useState(false);
-  const [showStartButton, setShowStartButton] = useState(false);
+  const [showStartButton, setShowStartButton] = useState(true);
+  const [unpaidButtonVisible, setUnpaidButtonVisible] = useState(false);
 
   const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
 
   const [offLineDebtData, setOffLineDebtData] = useState<CollectionData[]>([]);
   const [offLineOverdueSuamtData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+  const [sumDto, setSumDto] = useState<CheckMap>({});
 
   const [offlineAmtChecked, setOfflineAmtChecked] = useState(false);
   const [offlineSuAmtChecked, setOfflineSuAmtChecked] = useState(false);
@@ -45,10 +48,10 @@ const FileUploadPageContainer = () => {
     const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
     
     const debtOfflineAfter12Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-    const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOfflineAfter36Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
-    const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(35, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(36, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOnlineAfter1Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
     const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
@@ -57,10 +60,10 @@ const FileUploadPageContainer = () => {
     const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
     
     const debtOnlineAfter12Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-    const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 35).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOnlineAfter36Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
-    const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(35, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(36, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     setCompareResult({
         offline: {
@@ -240,8 +243,10 @@ const FileUploadPageContainer = () => {
     if (userConfirmed) {
       setLoading(true);
       try {
-        await axios.post("/api/sunab/start");
         alert("수납이 시작되었습니다!");
+        const response = await axios.post("/api/receive/lg/load");
+        alert("수납 데이터 생성 완료 " + response.data + "건");
+        setUnpaidButtonVisible(true);
       } catch (err) {
         console.error("수납 시작 실패:", err);
         alert("수납 시작 실패!");
@@ -250,6 +255,21 @@ const FileUploadPageContainer = () => {
       }
     } else {
       alert("수납이 취소되었습니다.");
+    }
+  };
+
+  const handleCreateUnpaidData = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/receive/lg/unpaid");
+      setSumDto(response.data.lgtReceiveSumDto);
+      alert("미납 데이터 생성 완료!");
+      console.log("미납 응답:", response.data);
+    } catch (err) {
+      console.error("미납 데이터 생성 실패:", err);
+      alert("미납 데이터 생성 실패!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -331,7 +351,7 @@ const FileUploadPageContainer = () => {
           onClick={handleStart}
           disabled={loading}
         >
-          수납 데이터 적재
+          수납 데이터 임시 적재
         </button>
         <button
           className={`px-4 py-2 rounded-lg text-lg ${
@@ -379,11 +399,76 @@ const FileUploadPageContainer = () => {
             }`}
             disabled={loading || !allChecked}
           >
-            🚨 수납시작
+            🚨 수납데이터생성
           </button>
+        )}
+        {unpaidButtonVisible && (
+          <div className="flex gap-4 mb-4">
+            <button
+              className={`px-4 py-2 rounded-lg text-lg ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600 text-white"
+              }`}
+              onClick={handleCreateUnpaidData}
+              disabled={loading}
+            >
+              ⚠️ 미납데이터생성
+            </button>
+          </div>
         )}
       </div>
 
+      {Object.keys(sumDto).length > 0 && (
+        <div className="w-full max-w-2xl mt-6 border rounded shadow">
+          <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 미납 요약</h3>
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border p-2">구분</th>
+                <th className="border p-2">수납금액</th>
+                <th className="border p-2">정산금액</th>
+                <th className="border p-2">총금액</th>
+                <th className="border p-2">차이</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                let prevA = 0;
+                const labelMap: Record<string, string> = {
+                  OVER: "초과",
+                  DISCOUNT: "다날 즉시할인 계열",
+                  MIRAE: "체납 이관 수납 반영(미래신용정보)",
+                  POINT: "다날 포인트",
+                  BOND: "체납 이관 수납 반영(채권 관리팀)",
+                  LAST: "최종 수납",
+                };
+
+                const keyOrder = ["OVER", "DISCOUNT", "POINT", "BOND", "MIRAE"];
+
+                return keyOrder.map((key, idx) => {
+                  const value = sumDto[key];
+                  if (!value) return null;
+
+                  const a = (value.sumSuamt ?? 0) + (value.sumSamt ?? 0) - (value.sumAmt ?? 0);
+                  const diff = idx === 0 ? a : a - prevA;
+                  const isFirst = idx === 0;
+
+                  prevA = a;
+
+                  return (
+                    <tr key={key}>
+                      <td className="border p-2 font-semibold">{labelMap[key] ?? key}</td>
+                      <td className="border p-2">{value.sumSuamt}</td>
+                      <td className="border p-2">{value.sumSamt}</td>
+                      <td className="border p-2">{value.sumAmt}</td>
+                      <td className="border p-2">{isFirst ? a : diff}</td>
+                    </tr>
+                  );
+                });
+              })()}
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* 3분할 레이아웃 */}
       {(detailData.length > 0 || offLineDebtData.length > 0 || onLineDebtData.length > 0 
            || offLineOverdueSuamtData.length > 0 || onLineOverdueSuamtData.length > 0) && (
@@ -654,7 +739,7 @@ const FileUploadPageContainer = () => {
                           <td className="px-2 py-1 border text-right">12개월 경과</td>
                           <td className="px-2 py-1 border text-right">
                             {offLineOverdueSuamtData
-                              .slice(11, 35)
+                              .slice(11, 36)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
@@ -663,7 +748,7 @@ const FileUploadPageContainer = () => {
                           <td className="px-2 py-1 border text-right">36개월 경과</td>
                           <td className="px-2 py-1 border text-right">
                             {offLineOverdueSuamtData
-                              .slice(35, offLineOverdueSuamtData.length)
+                              .slice(36, offLineOverdueSuamtData.length)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
@@ -712,7 +797,7 @@ const FileUploadPageContainer = () => {
                             <td className="px-2 py-1 border text-right">12개월 경과</td>
                             <td className="px-2 py-1 border text-right">
                               {onLineOverdueSuamtData
-                                .slice(11, 35)
+                                .slice(11, 36)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
@@ -721,7 +806,7 @@ const FileUploadPageContainer = () => {
                             <td className="px-2 py-1 border text-right">36개월 경과</td>
                             <td className="px-2 py-1 border text-right">
                               {onLineOverdueSuamtData
-                                .slice(35, onLineOverdueSuamtData.length)
+                                .slice(36, onLineOverdueSuamtData.length)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
