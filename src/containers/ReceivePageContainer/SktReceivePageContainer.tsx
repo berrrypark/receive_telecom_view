@@ -9,10 +9,20 @@ import type { ReconcileSumData } from "../../common/types/skt/reconcileSum";
 
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [reconcileSumData, setReconcileSumData] = useState<ReconcileSumData[]>([]);
-
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [reconcileSumData, setReconcileSumData] = useState<ReconcileSumData | null>(null);
+  const [inputs, setInputs] = useState({ A: "", B: "", C: "", D: "", E: "" });
+
+  const moidAmtSum =
+    Number(inputs.A || 0) +
+    Number(inputs.B || 0) +
+    Number(inputs.C || 0) +
+    Number(inputs.D || 0) +
+    Number(inputs.E || 0);
+
+  const moidAmtDiff =
+    (reconcileSumData?.moidAmt ?? 0) - moidAmtSum;
 
   const handleFileChange = (selectedFiles: File[]) => {
     setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
@@ -59,11 +69,12 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/skt/reconcile");
-      if (!Array.isArray(response.data)) {
-        console.error("API 응답이 배열이 아닙니다:", response.data);
+
+      if (!response.data || typeof response.data !== "object") {
         alert("데이터 포맷 오류");
         return;
       }
+
       setReconcileSumData(response.data);
     } catch (err) {
       console.error("상세내역 조회 실패:", err);
@@ -160,15 +171,6 @@ const FileUploadPageContainer = () => {
       <div className="flex gap-4 mb-4">
         <button
           className={`px-4 py-2 rounded-lg text-lg ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 text-white"
-          }`}
-          onClick={handleStart}
-          disabled={loading}
-        >
-          수납 데이터 적재
-        </button>
-        <button
-          className={`px-4 py-2 rounded-lg text-lg ${
             loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500 hover:bg-purple-600 text-white"
           }`}
           onClick={handleDetail}
@@ -176,35 +178,66 @@ const FileUploadPageContainer = () => {
         >
           다날거래 내역 조회
         </button>
+        <button
+          className={`px-4 py-2 rounded-lg text-lg ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 text-white"
+          }`}
+          onClick={handleStart}
+          disabled={loading}
+        >
+          수납 데이터 적재
+        </button>        
       </div>
 
       {/* 레이아웃 */}
-      {reconcileSumData.length > 0 && (
-          <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4">
-            {/* 왼쪽 (A) */}
-            {reconcileSumData.length > 0 && (
-              <div className="flex-1 border p-2 overflow-x-auto">
-                <h3 className="text-lg font-semibold mb-2">📊 상세내역</h3>
-                <table className="min-w-full text-xs text-left border">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="px-2 py-1 border">합계</th>
-                      <th className="px-2 py-1 border">MOID합계</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reconcileSumData.map((item, index) => (
-                      <tr key={`detail-${index}`}>
-                        <td className="px-2 py-1 border text-right">{Number(item.amt ?? 0).toLocaleString()}</td>
-                        <td className="px-2 py-1 border text-right">{Number(item.moidAmt ?? 0).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-      )}
+      {reconcileSumData && (
+      <div className="w-full max-w-4xl border p-4 rounded-xl shadow mb-8">
+        <h3 className="text-lg font-semibold mb-4">🧾다날 거래금액과 정산서 대사</h3>
+        <table className="min-w-full text-sm text-center border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-3 py-2">다날거래금액</th>
+              <th className="border px-3 py-2">CRID100정산서</th>
+              <th className="border px-3 py-2">모바일정산서</th>
+              <th className="border px-3 py-2">소득공제정산서</th>
+              <th className="border px-3 py-2">소득공제제외정산서</th>
+              <th className="border px-3 py-2">회수대행정산서</th>
+              <th className="border px-3 py-2">차이</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border px-3 py-2 text-right">
+                {Number(reconcileSumData.moidAmt ?? 0).toLocaleString()}
+              </td>
+             {(["A", "B", "C", "D", "E"] as const).map((key) => (
+                <td key={key} className="border px-3 py-2">
+                  <input
+                    type="number"
+                    value={inputs[key]}
+                    onChange={(e) =>
+                      setInputs((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
+                    }
+                    className="w-24 border rounded px-2 py-1 text-right"
+                    placeholder="0"
+                  />
+                </td>
+              ))}
+              <td
+                className={`border px-3 py-2 text-right font-bold ${
+                  moidAmtDiff === 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {moidAmtDiff.toLocaleString()}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )}
     </div>
   );
 };
