@@ -20,7 +20,9 @@ const FileUploadButton = ({ inputRef, files, onChange }: FileUploadButtonProps) 
     const invalidFiles: string[] = [];
 
     Array.from(selectedFiles).forEach((file) => {
-      if (file.name.endsWith(".layout")) {
+      const fileName = file.name.toLowerCase();
+
+      if (fileName.endsWith(".layout") || fileName.endsWith(".dat")) {
         validFiles.push(file);
       } else {
         invalidFiles.push(file.name);
@@ -40,7 +42,7 @@ const FileUploadButton = ({ inputRef, files, onChange }: FileUploadButtonProps) 
         <MdOutlineFileUpload className="mr-2" />
         파일 선택
       </button>
-      <input type="file" accept=".layout" multiple onChange={handleFileChange} ref={inputRef} className="hidden" />
+      <input type="file" accept=".layout,.dat" multiple onChange={handleFileChange} ref={inputRef} className="hidden" />
     </>
   );
 };

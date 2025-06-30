@@ -8,6 +8,7 @@ import type { ReceiveDetail } from "../../common/types/lg/receive";
 import type { ReconcileData } from "../../common/types/lg/reconcile";
 import type { CompareResultType } from "../../common/types/lg/compare";
 import type { CheckMap } from "../../common/types/lg/check";
+import type { LastSumData } from "../../common/types/lg/lastsum";
 
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
@@ -20,12 +21,6 @@ const FileUploadPageContainer = () => {
   const [showStartButton, setShowStartButton] = useState(true);
   const [unpaidButtonVisible, setUnpaidButtonVisible] = useState(false);
 
-  const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
-
-  const [offLineDebtData, setOffLineDebtData] = useState<CollectionData[]>([]);
-  const [offLineOverdueSuamtData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
-  const [sumDto, setSumDto] = useState<CheckMap>({});
-
   const [offlineAmtChecked, setOfflineAmtChecked] = useState(false);
   const [offlineSuAmtChecked, setOfflineSuAmtChecked] = useState(false);
   const [onlineAmtChecked, setOnlineAmtChecked] = useState(false);
@@ -33,6 +28,11 @@ const FileUploadPageContainer = () => {
 
   const allChecked = offlineAmtChecked && offlineSuAmtChecked && onlineAmtChecked && onlineSuAmtChecked;
 
+  const [compareResult, setCompareResult] = useState<CompareResultType | null>(null);
+  const [offLineDebtData, setOffLineDebtData] = useState<CollectionData[]>([]);
+  const [offLineOverdueSuamtData, setOffLineOverdueSuamtData] = useState<ReconcileData[]>([]);
+  const [sumDto, setSumDto] = useState<CheckMap>({});
+  const [lastSumData, setLastSumData] = useState<LastSumData | null>(null);
   const [onLineDebtData, setOnLineDebtData] = useState<CollectionData[]>([]);
   const [onLineOverdueSuamtData, setOnLineOverdueSuamtData] = useState<ReconcileData[]>([]);
   const [detailData, setDetailData] = useState<ReceiveDetail[]>([]);
@@ -245,7 +245,8 @@ const FileUploadPageContainer = () => {
       try {
         alert("수납이 시작되었습니다!");
         const response = await axios.post("/api/receive/lg/load");
-        alert("수납 데이터 생성 완료 " + response.data + "건");
+        alert("수납 데이터 생성 완료 ");
+        setLastSumData(response.data);
         setUnpaidButtonVisible(true);
       } catch (err) {
         console.error("수납 시작 실패:", err);
@@ -457,14 +458,33 @@ const FileUploadPageContainer = () => {
                   return (
                     <tr key={key}>
                       <td className="border p-2 font-semibold">{labelMap[key] ?? key}</td>
-                      <td className="border p-2">{value.sumSuamt}</td>
-                      <td className="border p-2">{value.sumSamt}</td>
-                      <td className="border p-2">{value.sumAmt}</td>
+                      <td className="border p-2">{Number(value.sumSuamt ?? 0).toLocaleString()}</td>
+                      <td className="border p-2">{Number(value.sumSamt ?? 0).toLocaleString()}</td>
+                      <td className="border p-2">{Number(value.sumAmt ?? 0).toLocaleString()}</td>
                       <td className="border p-2">{isFirst ? a : diff}</td>
                     </tr>
                   );
                 });
               })()}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {lastSumData && (
+        <div className="w-full max-w-2xl mt-6 border rounded shadow">
+          <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 적재 결과</h3>
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border p-2">적재 건수</th>
+                <th className="border p-2">적재 금액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border p-2 font-semibold">{Number(lastSumData.count ?? 0).toLocaleString()}</td>
+                <td className="border p-2">{Number(lastSumData.sumAmt ?? 0).toLocaleString()}</td>
+              </tr>
             </tbody>
           </table>
         </div>

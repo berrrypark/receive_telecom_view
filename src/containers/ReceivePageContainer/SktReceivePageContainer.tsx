@@ -6,12 +6,16 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import FileUploadButton from "../../components/FileUploadButton/FileUploadButton";
 
 import type { ReconcileSumData } from "../../common/types/skt/reconcileSum";
+import type { DetailSumData } from "../../common/types/skt/detailSum";
 
 const FileUploadPageContainer = () => {
   const [files, setFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [detailSumData, setDetailSumData] = useState<DetailSumData | null>(null);
   const [reconcileSumData, setReconcileSumData] = useState<ReconcileSumData | null>(null);
+
   const [inputs, setInputs] = useState({ A: "", B: "", C: "", D: "", E: "" });
 
   const moidAmtSum =
@@ -56,7 +60,18 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/skt/start");
-      alert("수납 데이터 적재 완료! " + response.data + "건");
+      console.log("API 응답:", response.data);
+
+      const results = response.data?.response;
+
+      if (Array.isArray(results)) {
+        const summary = results
+          .map((item) => `${item.name}: ${item.rows}건`)
+          .join("\n");
+        alert("수납 데이터 적재 완료!\n" + summary);
+      } else {
+        alert("수납 데이터 적재 완료! (응답 형식 확인 필요)");
+      }
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
       alert("수납 데이터 처리 실패!");
@@ -191,6 +206,54 @@ const FileUploadPageContainer = () => {
 
       {/* 레이아웃 */}
       {reconcileSumData && (
+      <div className="w-full max-w-4xl border p-4 rounded-xl shadow mb-8">
+        <h3 className="text-lg font-semibold mb-4">🧾다날 거래금액과 정산서 대사</h3>
+        <table className="min-w-full text-sm text-center border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-3 py-2">다날거래금액</th>
+              <th className="border px-3 py-2">CRID100정산서</th>
+              <th className="border px-3 py-2">모바일정산서</th>
+              <th className="border px-3 py-2">소득공제정산서</th>
+              <th className="border px-3 py-2">소득공제제외정산서</th>
+              <th className="border px-3 py-2">회수대행정산서</th>
+              <th className="border px-3 py-2">차이</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border px-3 py-2 text-right">
+                {Number(reconcileSumData.moidAmt ?? 0).toLocaleString()}
+              </td>
+             {(["A", "B", "C", "D", "E"] as const).map((key) => (
+                <td key={key} className="border px-3 py-2">
+                  <input
+                    type="number"
+                    value={inputs[key]}
+                    onChange={(e) =>
+                      setInputs((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
+                    }
+                    className="w-24 border rounded px-2 py-1 text-right"
+                    placeholder="0"
+                  />
+                </td>
+              ))}
+              <td
+                className={`border px-3 py-2 text-right font-bold ${
+                  moidAmtDiff === 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {moidAmtDiff.toLocaleString()}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )}
+    {reconcileSumData && (
       <div className="w-full max-w-4xl border p-4 rounded-xl shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">🧾다날 거래금액과 정산서 대사</h3>
         <table className="min-w-full text-sm text-center border">
