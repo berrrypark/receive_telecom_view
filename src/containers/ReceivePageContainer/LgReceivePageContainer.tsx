@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import axios from "axios";
 import { MdDelete } from "react-icons/md";
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { toast } from 'react-toastify';
 
 import type { CollectionData } from "../../common/types/lg/collection";
 import type { ReceiveDetail } from "../../common/types/lg/receive";
@@ -142,11 +143,13 @@ const FileUploadPageContainer = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("파일 업로드 완료!");
+      toast.success("파일 업로드 완료!");
       handleDeleteAllFiles();
     } catch (err) {
       console.error("파일 업로드 오류:", err);
-      alert("파일 업로드 오류 발생!");
+      toast.error("파일 업로드 오류 발생!", {
+                                          autoClose: false
+                                        });
     } finally {
       setLoading(false);
     }
@@ -156,11 +159,13 @@ const FileUploadPageContainer = () => {
     setLoading(true);
     try {
       const response = await axios.post("/api/receive/lg/start");
-      alert("수납 데이터 적재 완료! " + response.data + "건");
+      toast.success("수납 데이터 적재 완료! " + response.data + "건");
       setDataLoaded(true);
     } catch (err) {
       console.error("수납 데이터 처리 실패:", err);
-      alert("수납 데이터 처리 실패!");
+      toast.error("수납 데이터 처리 실패!", {
+                                            autoClose: false
+                                          });
     } finally {
       setLoading(false);
     }
@@ -172,13 +177,17 @@ const FileUploadPageContainer = () => {
       const response = await axios.post("/api/receive/lg/detail");
       if (!Array.isArray(response.data)) {
         console.error("API 응답이 배열이 아닙니다:", response.data);
-        alert("데이터 포맷 오류");
+        toast.error("데이터 포맷 오류", {
+                                        autoClose: false
+                                      });
         return;
       }
       setDetailData(response.data);
     } catch (err) {
       console.error("상세내역 조회 실패:", err);
-      alert("상세내역 조회 실패!");
+      toast.error("상세내역 조회 실패!", {
+                                        autoClose: false
+                                      });
     } finally {
       setLoading(false);
     }
@@ -190,7 +199,9 @@ const FileUploadPageContainer = () => {
       const response = await axios.post("/api/debt/lg/collection-detail");
       if (!response.data || !Array.isArray(response.data.offLine) || !Array.isArray(response.data.onLine)) {
         console.error("API 응답 포맷 오류:", response.data);
-        alert("데이터 포맷 오류");
+        toast.error("데이터 포맷 오류", {
+                                        autoClose: false
+                                      });
         return;
       }
       setOffLineDebtData(response.data.offLine);
@@ -198,7 +209,9 @@ const FileUploadPageContainer = () => {
       setDebtLoaded(true);
     } catch (err) {
       console.error("채권추심 상세내역 조회 실패:", err);
-      alert("채권추심 상세내역 조회 실패!");
+      toast.error("채권추심 상세내역 조회 실패!", {
+                                                autoClose: false
+                                              });
     } finally {
       setLoading(false);
     }
@@ -210,7 +223,7 @@ const FileUploadPageContainer = () => {
       const response = await axios.post("/api/receive/lg/overdue");
       if (!response.data || !Array.isArray(response.data.offLine) || !Array.isArray(response.data.onLine)) {
         console.error("API 응답 포맷 오류:", response.data);
-        alert("데이터 포맷 오류");
+        toast.error("데이터 포맷 오류");
         return;
       }
       setOffLineOverdueSuamtData(response.data.offLine);
@@ -218,7 +231,9 @@ const FileUploadPageContainer = () => {
       setOverdueSuamtLoaded(true);
     } catch (err) {
       console.error("수납연체가산금 대사 실패:", err);
-      alert("수납연체가산금 대사 실패!");
+      toast.error("수납연체가산금 대사 실패!", {
+                                              autoClose: false
+                                            });
     } finally {
       setLoading(false);
     }
@@ -243,19 +258,21 @@ const FileUploadPageContainer = () => {
     if (userConfirmed) {
       setLoading(true);
       try {
-        alert("수납이 시작되었습니다!");
+        toast.info("수납이 시작되었습니다!");
         const response = await axios.post("/api/receive/lg/load");
-        alert("수납 데이터 생성 완료 ");
+        toast.success("수납 데이터 생성 완료 ");
         setLastSumData(response.data);
         setUnpaidButtonVisible(true);
       } catch (err) {
         console.error("수납 시작 실패:", err);
-        alert("수납 시작 실패!");
+        toast.error("수납 시작 실패!", {
+                                        autoClose: false
+                                      });
       } finally {
         setLoading(false);
       }
     } else {
-      alert("수납이 취소되었습니다.");
+      toast.info("수납이 취소되었습니다.");
     }
   };
 
@@ -264,11 +281,13 @@ const FileUploadPageContainer = () => {
     try {
       const response = await axios.post("/api/receive/lg/unpaid");
       setSumDto(response.data.lgtReceiveSumDto);
-      alert("미납 데이터 생성 완료!");
+      toast.success("미납 데이터 생성 완료!");
       console.log("미납 응답:", response.data);
     } catch (err) {
       console.error("미납 데이터 생성 실패:", err);
-      alert("미납 데이터 생성 실패!");
+      toast.error("미납 데이터 생성 실패!", {
+                                            autoClose: false
+                                          });
     } finally {
       setLoading(false);
     }
@@ -418,77 +437,82 @@ const FileUploadPageContainer = () => {
         )}
       </div>
 
-      {Object.keys(sumDto).length > 0 && (
-        <div className="w-full max-w-2xl mt-6 border rounded shadow">
-          <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 미납 요약</h3>
-          <table className="min-w-full text-sm text-center">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="border p-2">구분</th>
-                <th className="border p-2">수납금액</th>
-                <th className="border p-2">정산금액</th>
-                <th className="border p-2">총금액</th>
-                <th className="border p-2">차이</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                let prevA = 0;
-                const labelMap: Record<string, string> = {
-                  OVER: "초과",
-                  DISCOUNT: "다날 즉시할인 계열",
-                  MIRAE: "체납 이관 수납 반영(미래신용정보)",
-                  POINT: "다날 포인트",
-                  BOND: "체납 이관 수납 반영(채권 관리팀)",
-                  LAST: "최종 수납",
-                };
+      {(Object.keys(sumDto).length > 0 || lastSumData) && (
+        <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4 mt-8">
+          {Object.keys(sumDto).length > 0 && (
+            <div className="flex-1 border rounded shadow">
+              <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 미납 요약</h3>
+              <table className="min-w-full text-sm text-center">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="border p-2">구분</th>
+                    <th className="border p-2">수납금액</th>
+                    <th className="border p-2">정산금액</th>
+                    <th className="border p-2">총금액</th>
+                    <th className="border p-2">차이</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    let prevA = 0;
+                    const labelMap: Record<string, string> = {
+                      OVER: "초과",
+                      DISCOUNT: "다날 즉시할인 계열",
+                      MIRAE: "체납 이관 수납 반영(미래신용정보)",
+                      POINT: "다날 포인트",
+                      BOND: "체납 이관 수납 반영(채권 관리팀)",
+                      LAST: "최종 수납",
+                    };
 
-                const keyOrder = ["OVER", "DISCOUNT", "POINT", "BOND", "MIRAE"];
+                    const keyOrder = ["OVER", "DISCOUNT", "POINT", "BOND", "MIRAE"];
 
-                return keyOrder.map((key, idx) => {
-                  const value = sumDto[key];
-                  if (!value) return null;
+                    return keyOrder.map((key, idx) => {
+                      const value = sumDto[key];
+                      if (!value) return null;
 
-                  const a = (value.sumSuamt ?? 0) + (value.sumSamt ?? 0) - (value.sumAmt ?? 0);
-                  const diff = idx === 0 ? a : a - prevA;
-                  const isFirst = idx === 0;
+                      const a = (value.sumSuamt ?? 0) + (value.sumSamt ?? 0) - (value.sumAmt ?? 0);
+                      const diff = idx === 0 ? a : a - prevA;
+                      const isFirst = idx === 0;
 
-                  prevA = a;
+                      prevA = a;
 
-                  return (
-                    <tr key={key}>
-                      <td className="border p-2 font-semibold">{labelMap[key] ?? key}</td>
-                      <td className="border p-2">{Number(value.sumSuamt ?? 0).toLocaleString()}</td>
-                      <td className="border p-2">{Number(value.sumSamt ?? 0).toLocaleString()}</td>
-                      <td className="border p-2">{Number(value.sumAmt ?? 0).toLocaleString()}</td>
-                      <td className="border p-2">{isFirst ? a : diff}</td>
-                    </tr>
-                  );
-                });
-              })()}
-            </tbody>
-          </table>
+                      return (
+                        <tr key={key}>
+                          <td className="border p-2 font-semibold">{labelMap[key] ?? key}</td>
+                          <td className="border p-2">{Number(value.sumSuamt ?? 0).toLocaleString()}</td>
+                          <td className="border p-2">{Number(value.sumSamt ?? 0).toLocaleString()}</td>
+                          <td className="border p-2">{Number(value.sumAmt ?? 0).toLocaleString()}</td>
+                          <td className="border p-2">{isFirst ? a : diff}</td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {lastSumData && (
+            <div className="flex-1 border rounded shadow">
+              <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 적재 결과</h3>
+              <table className="min-w-full text-sm text-center">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="border p-2">적재 건수</th>
+                    <th className="border p-2">적재 금액</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border p-2 font-semibold">{Number(lastSumData.count ?? 0).toLocaleString()}</td>
+                    <td className="border p-2">{Number(lastSumData.sumAmt ?? 0).toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
-      {lastSumData && (
-        <div className="w-full max-w-2xl mt-6 border rounded shadow">
-          <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 적재 결과</h3>
-          <table className="min-w-full text-sm text-center">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="border p-2">적재 건수</th>
-                <th className="border p-2">적재 금액</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border p-2 font-semibold">{Number(lastSumData.count ?? 0).toLocaleString()}</td>
-                <td className="border p-2">{Number(lastSumData.sumAmt ?? 0).toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+
       {/* 3분할 레이아웃 */}
       {(detailData.length > 0 || offLineDebtData.length > 0 || onLineDebtData.length > 0 
            || offLineOverdueSuamtData.length > 0 || onLineOverdueSuamtData.length > 0) && (
