@@ -139,7 +139,7 @@ const FileUploadPageContainer = () => {
 
     setLoading(true);
     try {
-      await axios.post("/api/upload/multiple/lg", formData, {
+      await axios.post("/api/upload/multiple/lgt", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -438,7 +438,7 @@ const FileUploadPageContainer = () => {
       </div>
 
       {(Object.keys(sumDto).length > 0 || lastSumData) && (
-        <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-4 mt-8">
+        <div className="w-full max-w-7xl mt-6 flex flex-col lg:flex-row gap-4">
           {Object.keys(sumDto).length > 0 && (
             <div className="flex-1 border rounded shadow">
               <h3 className="text-lg font-bold p-3 border-b bg-gray-100">📊 미납 요약</h3>
