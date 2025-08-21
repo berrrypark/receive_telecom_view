@@ -43,25 +43,25 @@ const FileUploadPageContainer = () => {
   const handleCompareResultCheck = () => {
 
     const debtOfflineAfter1Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-    const overdueSuamtOfflineAfter1Month = offLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOfflineAfter1Month = offLineOverdueSuamtData.slice(0, 4).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOfflineAfter4Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
-    const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOfflineAfter4Month = offLineOverdueSuamtData.slice(4, 12).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
     
     const debtOfflineAfter12Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-    const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(11, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOfflineAfter12Month = offLineOverdueSuamtData.slice(12, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOfflineAfter36Month = offLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
     const overdueSuamtOfflineAfter36Month = offLineOverdueSuamtData.slice(36, offLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOnlineAfter1Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after1MonthSuAmt ?? 0), 0);
-    const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 3).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOnlineAfter1Month = onLineOverdueSuamtData.slice(0, 4).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOnlineAfter4Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after4MonthSuAmt ?? 0), 0);
-    const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(3, 11).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOnlineAfter4Month = onLineOverdueSuamtData.slice(4, 12).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
     
     const debtOnlineAfter12Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after12MonthSuAmt ?? 0), 0);
-    const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(11, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
+    const overdueSuamtOnlineAfter12Month = onLineOverdueSuamtData.slice(12, 36).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
 
     const debtOnlineAfter36Month = onLineDebtData.reduce((acc, item) => acc + Number(item.after36MonthSuAmt ?? 0), 0);
     const overdueSuamtOnlineAfter36Month = onLineOverdueSuamtData.slice(36, onLineOverdueSuamtData.length).reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0);
@@ -765,7 +765,7 @@ const FileUploadPageContainer = () => {
                           <td className="px-2 py-1 border text-right">1개월 경과</td>
                           <td className="px-2 py-1 border text-right">
                             {offLineOverdueSuamtData
-                              .slice(0, 3)
+                              .slice(0, 4)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
@@ -774,7 +774,7 @@ const FileUploadPageContainer = () => {
                           <td className="px-2 py-1 border text-right">4개월 경과</td>
                           <td className="px-2 py-1 border text-right">
                             {offLineOverdueSuamtData
-                              .slice(3, 11)
+                              .slice(4, 12)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
@@ -783,7 +783,7 @@ const FileUploadPageContainer = () => {
                           <td className="px-2 py-1 border text-right">12개월 경과</td>
                           <td className="px-2 py-1 border text-right">
                             {offLineOverdueSuamtData
-                              .slice(11, 36)
+                              .slice(12, 36)
                               .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                               .toLocaleString()}
                           </td>
@@ -823,7 +823,7 @@ const FileUploadPageContainer = () => {
                             <td className="px-2 py-1 border text-right">1개월 경과</td>
                             <td className="px-2 py-1 border text-right">
                               {onLineOverdueSuamtData
-                                .slice(0, 3)
+                                .slice(0, 4)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
@@ -832,7 +832,7 @@ const FileUploadPageContainer = () => {
                             <td className="px-2 py-1 border text-right">4개월 경과</td>
                             <td className="px-2 py-1 border text-right">
                               {onLineOverdueSuamtData
-                                .slice(3, 11)
+                                .slice(4, 12)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
@@ -841,7 +841,7 @@ const FileUploadPageContainer = () => {
                             <td className="px-2 py-1 border text-right">12개월 경과</td>
                             <td className="px-2 py-1 border text-right">
                               {onLineOverdueSuamtData
-                                .slice(11, 36)
+                                .slice(12, 36)
                                 .reduce((acc, item) => acc + Number(item.overdueSuamt ?? 0), 0)
                                 .toLocaleString()}
                             </td>
